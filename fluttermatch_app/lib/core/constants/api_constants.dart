@@ -1,0 +1,28 @@
+class ApiConstants {
+  // Change this to your Laravel URL
+  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  // Note: 10.0.2.2 is how Android emulator reaches your localhost
+
+  // Auth
+  static const String register     = '/register';
+  static const String login        = '/login';
+  static const String logout       = '/logout';
+  static const String forgotPass   = '/forgot-password';
+
+  // Profile
+  static const String profile      = '/profile';
+  static const String updateProfile = '/profile/update';
+  static const String uploadPhoto  = '/profile/photos';
+
+  // Discovery
+  static const String discover     = '/discover';
+  static const String like         = '/like';
+  static const String dislike      = '/dislike';
+
+  // Matches
+  static const String matches      = '/matches';
+
+  // Chat
+  static const String messages     = '/messages';
+  static const String sendMessage  = '/messages/send';
+}
