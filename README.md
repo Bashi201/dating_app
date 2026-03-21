@@ -40,16 +40,16 @@ FlutterMatch/
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Mobile | Flutter 3.x + Dart + Riverpod |
-| Backend | Laravel 11 + PHP |
-| Database | PostgreSQL |
-| Auth | Laravel Sanctum (token-based) |
-| Image Storage | Cloudinary |
-| Real-time | Laravel Reverb (WebSockets) |
-| HTTP Client | Dio |
-| Secure Storage | flutter_secure_storage |
+| Layer          | Technology                    |
+| -------------- | ----------------------------- |
+| Mobile         | Flutter 3.x + Dart + Riverpod |
+| Backend        | Laravel 11 + PHP              |
+| Database       | PostgreSQL                    |
+| Auth           | Laravel Sanctum (token-based) |
+| Image Storage  | Cloudinary                    |
+| Real-time      | Laravel Reverb (WebSockets)   |
+| HTTP Client    | Dio                           |
+| Secure Storage | flutter_secure_storage        |
 
 ---
 
@@ -62,6 +62,50 @@ FlutterMatch/
 - PostgreSQL
 - Flutter 3.x SDK
 - A free [Cloudinary](https://cloudinary.com) account
+
+---
+
+## 🪟 Windows Setup (Required)
+
+> **Mac/Linux users can skip this section entirely.**
+
+PHP on Windows does not ship with SSL certificates, which causes Cloudinary uploads (and any other HTTPS requests from PHP) to fail silently. You must configure this manually **once per machine**.
+
+### Step 1 — Download the certificate bundle
+
+Download `cacert.pem` from the official source:
+
+```
+https://curl.se/ca/cacert.pem
+```
+
+### Step 2 — Place the file
+
+Save it to:
+
+```
+C:\php\extras\ssl\cacert.pem
+```
+
+Create the `extras\ssl` folders if they don't exist.
+
+### Step 3 — Configure php.ini
+
+Open `C:\php\php.ini` and find (or add) these two lines:
+
+```ini
+curl.cainfo = "C:\php\extras\ssl\cacert.pem"
+openssl.cafile = "C:\php\extras\ssl\cacert.pem"
+```
+
+### Step 4 — Restart your server
+
+```bash
+php artisan config:clear
+php artisan serve
+```
+
+> ⚠️ Without this step, photo uploads to Cloudinary will silently fail even though the profile data saves correctly.
 
 ---
 
@@ -99,6 +143,10 @@ DB_DATABASE=fluttermatch
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
 
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS="noreply@fluttermatch.com"
+MAIL_FROM_NAME="FlutterMatch"
+
 CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
@@ -128,14 +176,18 @@ flutter pub get
 flutter run
 ```
 
+> ⚠️ **Android emulator note:** The emulator treats `10.0.2.2` as your host machine's `localhost`. Do not use `127.0.0.1` in the Flutter app when running on an Android emulator.
+
 ---
 
 ### 👥 Onboarding a New Teammate
 
-After cloning the repo a teammate only needs to:
+After cloning the repo a teammate needs to:
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/FlutterMatch.git
+
+# Backend
 cd FlutterMatch/fluttermatch-api
 composer install
 cp .env.example .env
@@ -143,42 +195,51 @@ cp .env.example .env
 php artisan key:generate
 php artisan migrate
 php artisan serve
+
+# Flutter
+cd ../fluttermatch_app
+flutter pub get
+flutter run
 ```
 
-> ✅ No `php.ini` edits needed — SSL handling for Cloudinary is done in code automatically for `local` environments.
+> 🪟 **Windows teammates:** Complete the [Windows Setup](#-windows-setup-required) section above **before** running `php artisan serve`, otherwise Cloudinary photo uploads will not work.
 
 ---
 
 ## 📡 API Overview
 
 ### Auth
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/api/register` | Create account |
-| POST | `/api/login` | Login, returns token |
-| POST | `/api/logout` | Revoke token |
-| GET | `/api/me` | Get current user |
+
+| Method | Endpoint        | Description          |
+| ------ | --------------- | -------------------- |
+| POST   | `/api/register` | Create account       |
+| POST   | `/api/login`    | Login, returns token |
+| POST   | `/api/logout`   | Revoke token         |
+| GET    | `/api/me`       | Get current user     |
 
 ### Profile
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/profile` | Get own profile |
-| PUT | `/api/profile` | Update profile |
-| POST | `/api/profile/photos` | Upload photo |
-| DELETE | `/api/profile/photos/{id}` | Delete photo |
-| PATCH | `/api/profile/photos/{id}/primary` | Set primary photo |
+
+| Method | Endpoint                           | Description       |
+| ------ | ---------------------------------- | ----------------- |
+| GET    | `/api/profile`                     | Get own profile   |
+| PUT    | `/api/profile`                     | Update profile    |
+| POST   | `/api/profile/photos`              | Upload photo      |
+| DELETE | `/api/profile/photos/{id}`         | Delete photo      |
+| PATCH  | `/api/profile/photos/{id}/primary` | Set primary photo |
 
 ### Discovery & Matches
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/discover` | Get discovery feed |
-| POST | `/api/like/{userId}` | Like a user |
-| POST | `/api/dislike/{userId}` | Dislike a user |
-| GET | `/api/matches` | List all matches |
-| GET | `/api/matches/{id}/messages` | Get chat messages |
-| POST | `/api/matches/{id}/messages` | Send a message |
+
+| Method | Endpoint                     | Description        |
+| ------ | ---------------------------- | ------------------ |
+| GET    | `/api/discover`              | Get discovery feed |
+| POST   | `/api/like/{userId}`         | Like a user        |
+| POST   | `/api/dislike/{userId}`      | Dislike a user     |
+| GET    | `/api/matches`               | List all matches   |
+| GET    | `/api/matches/{id}/messages` | Get chat messages  |
+| POST   | `/api/matches/{id}/messages` | Send a message     |
 
 All protected endpoints require the header:
+
 ```
 Authorization: Bearer YOUR_TOKEN
 ```
