@@ -13,6 +13,21 @@ Route::middleware('throttle:6,1')->group(function () {
 
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
+// Email Verification Route (required for sendEmailVerificationNotification)
+Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Http\Request $request, $id, $hash) {
+    $user = \App\Models\User::find($id);
+    if (! $user || ! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        return response()->json(['message' => 'Invalid verification link'], 400);
+    }
+    if (! $request->hasValidSignature()) {
+        return response()->json(['message' => 'Invalid/Expired url provided.'], 401);
+    }
+    if (! $user->hasVerifiedEmail()) {
+        $user->markEmailAsVerified();
+    }
+    return response()->json(['message' => 'Email verified successfully']);
+})->name('verification.verify');
+
 // ─── Protected Routes (Sanctum token required) ────────────
 Route::middleware(['auth:sanctum'])->group(function () {
 
