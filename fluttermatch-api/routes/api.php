@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PhotoController;
+use App\Http\Controllers\DiscoveryController;
+use App\Http\Controllers\LikeController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public Routes (no auth needed) ──────────────────────
@@ -44,6 +46,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/profile/photos/{photo}',        [PhotoController::class, 'destroy']);
     Route::patch ('/profile/photos/{photo}/primary',[PhotoController::class, 'setPrimary']);
 
+    // Discovery
+    Route::get ('/discover',       [DiscoveryController::class, 'index']);
+    Route::post('/like/{user}',    [LikeController::class, 'like']);
+    Route::post('/dislike/{user}', [LikeController::class, 'dislike']);
+
     // We'll add more routes here in next steps:
-    // Discovery, Matches, Chat, Safety
+    // Matches, Chat, Safety
 });
