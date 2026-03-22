@@ -128,9 +128,12 @@ php artisan key:generate
 
 # 6. Run database migrations
 php artisan migrate
-
+php artisan db:seed
 # 7. Start the development server
 php artisan serve
+
+# 8. Start the Reverb WebSocket server (in a new terminal)
+php artisan reverb:start
 ```
 
 **Required `.env` values:**
@@ -151,6 +154,13 @@ CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
+REVERB_APP_ID=my-app-id
+REVERB_APP_KEY=my-app-key
+REVERB_APP_SECRET=my-app-secret
+REVERB_HOST="localhost"
+REVERB_PORT=8080
+REVERB_SCHEME=http
 ```
 
 > ⚠️ **Never commit your `.env` file.** It is already listed in `.gitignore`. Each teammate fills in their own credentials.
@@ -191,10 +201,11 @@ git clone https://github.com/YOUR_USERNAME/FlutterMatch.git
 cd FlutterMatch/fluttermatch-api
 composer install
 cp .env.example .env
-# → Fill in DB credentials and Cloudinary keys in .env
+# → Fill in DB, Cloudinary, and Reverb credentials in .env
 php artisan key:generate
 php artisan migrate
 php artisan serve
+php artisan reverb:start # (run in a new terminal)
 
 # Flutter
 cd ../fluttermatch_app
