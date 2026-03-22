@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/discover_user_model.dart';
 import '../../providers/discovery_provider.dart';
+import '../../providers/match_provider.dart';
+import '../matches/matches_screen.dart';
 import 'widgets/profile_card.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
@@ -52,7 +54,18 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => _MatchSheet(matchId: matchId),
+      builder: (_) => _MatchSheet(
+        matchId: matchId,
+        onSendMessage: () {
+          // Reload matches so the new one appears at the top
+          ref.read(matchProvider.notifier).loadMatches();
+          // Navigate to MatchesScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MatchesScreen()),
+          );
+        },
+      ),
     );
   }
 
@@ -168,27 +181,18 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Dislike button
           _ActionBtn(
-            onTap: () {
-              _swiperController.swipe(CardSwiperDirection.left);
-            },
+            onTap: () => _swiperController.swipe(CardSwiperDirection.left),
             icon: Icons.close_rounded,
             color: Colors.red.shade400,
             size: 58,
           ),
-
-          // Like button
           _ActionBtn(
-            onTap: () {
-              _swiperController.swipe(CardSwiperDirection.right);
-            },
+            onTap: () => _swiperController.swipe(CardSwiperDirection.right),
             icon: Icons.favorite_rounded,
             color: _pink,
             size: 68,
           ),
-
-          // Super like (placeholder for now)
           _ActionBtn(
             onTap: () {},
             icon: Icons.star_rounded,
@@ -351,10 +355,11 @@ class _ErrorState extends StatelessWidget {
 
 class _MatchSheet extends StatelessWidget {
   final int? matchId;
+  final VoidCallback onSendMessage;
 
   static const _pink = Color(0xFFE84393);
 
-  const _MatchSheet({this.matchId});
+  const _MatchSheet({this.matchId, required this.onSendMessage});
 
   @override
   Widget build(BuildContext context) {
@@ -367,7 +372,6 @@ class _MatchSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Hearts animation
           const Text('💞', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           const Text(
@@ -389,8 +393,8 @@ class _MatchSheet extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
-                // TODO: navigate to chat screen in Step 6
+                Navigator.pop(context); // close sheet first
+                onSendMessage(); // then navigate
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _pink,

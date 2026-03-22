@@ -5,6 +5,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\MatchController;
+use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Public Routes (no auth needed) ──────────────────────
@@ -51,6 +53,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/like/{user}',    [LikeController::class, 'like']);
     Route::post('/dislike/{user}', [LikeController::class, 'dislike']);
 
+    // Matches
+    Route::get('/matches', [MatchController::class, 'index']);
+
+    // Messages
+    Route::get ('/matches/{match}/messages', [MessageController::class, 'index']);
+    Route::post('/matches/{match}/messages', [MessageController::class, 'store']);
+    Route::post('/matches/{match}/read',     [MessageController::class, 'markRead']);
+
     // We'll add more routes here in next steps:
-    // Matches, Chat, Safety
+    // Safety
 });

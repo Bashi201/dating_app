@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/match_provider.dart';
 import 'discovery/discovery_screen.dart';
+import 'matches/matches_screen.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -20,9 +22,17 @@ class _MainShellState extends ConsumerState<MainShell> {
   Widget build(BuildContext context) {
     final screens = [
       const DiscoveryScreen(),
-      const _PlaceholderScreen(icon: Icons.favorite, label: 'Matches'),
+      const MatchesScreen(),
       _ProfileTab(),
     ];
+
+    // Total unread count across all matches
+    final totalUnread = ref
+        .watch(matchProvider)
+        .maybeWhen(
+          data: (matches) => matches.fold(0, (sum, m) => sum + m.unreadCount),
+          orElse: () => 0,
+        );
 
     return Scaffold(
       body: IndexedStack(index: _tab, children: screens),
@@ -31,18 +41,26 @@ class _MainShellState extends ConsumerState<MainShell> {
         onDestinationSelected: (i) => setState(() => _tab = i),
         backgroundColor: Colors.white,
         indicatorColor: const Color(0xFFFFE0F0),
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.explore_outlined),
             selectedIcon: Icon(Icons.explore, color: _pink),
             label: 'Discover',
           ),
           NavigationDestination(
-            icon: Icon(Icons.favorite_border),
-            selectedIcon: Icon(Icons.favorite, color: _pink),
+            icon: Badge(
+              isLabelVisible: totalUnread > 0,
+              label: Text('$totalUnread'),
+              child: const Icon(Icons.favorite_border),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: totalUnread > 0,
+              label: Text('$totalUnread'),
+              child: const Icon(Icons.favorite, color: _pink),
+            ),
             label: 'Matches',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person, color: _pink),
             label: 'Profile',
@@ -176,40 +194,6 @@ class _ProfileTab extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Placeholder for Matches tab ───────────────────────────────
-
-class _PlaceholderScreen extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _PlaceholderScreen({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFFF5F9),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: Colors.grey.shade300),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Coming in next step',
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade300),
-            ),
           ],
         ),
       ),
