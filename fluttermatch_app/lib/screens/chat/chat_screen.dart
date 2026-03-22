@@ -403,8 +403,9 @@ class _MessageBubble extends StatelessWidget {
   }
 
   String _formatTime(DateTime dt) {
-    final h = dt.hour.toString().padLeft(2, '0');
-    final m = dt.minute.toString().padLeft(2, '0');
+    final localDt = dt.toLocal();
+    final h = localDt.hour.toString().padLeft(2, '0');
+    final m = localDt.minute.toString().padLeft(2, '0');
     return '$h:$m';
   }
 }

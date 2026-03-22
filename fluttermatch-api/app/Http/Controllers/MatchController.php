@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\MatchResource;
-use App\Models\Match as UserMatch;
+use App\Models\UserMatch;
 use Illuminate\Http\Request;
 
 class MatchController extends Controller

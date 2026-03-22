@@ -26,7 +26,7 @@ class DiscoveryController extends Controller
             // IDs to exclude: self + already liked/disliked + blocked
             $likedIds   = $me->likesGiven()->pluck('liked_id');
             $blockedIds = $me->blocks()->pluck('blocked_id');
-            $excludeIds = $likedIds->merge($blockedIds)->push($me->id)->unique();
+            $excludeIds = $likedIds->merge($blockedIds)->push($me->id)->unique()->toArray();
 
             // Gender filter
             $genderFilter = match ($profile->interested_in) {

@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Match extends Model
+class UserMatch extends Model
 {
     use HasFactory;
 
@@ -42,12 +42,12 @@ class Match extends Model
 
     public function messages()
     {
-        return $this->hasMany(Message::class)->orderBy('created_at', 'asc');
+        return $this->hasMany(Message::class, 'match_id')->orderBy('created_at', 'asc');
     }
 
     public function latestMessage()
     {
-        return $this->hasOne(Message::class)->latestOfMany('created_at');
+        return $this->hasOne(Message::class, 'match_id')->latestOfMany('created_at');
     }
 
     // ─── Scopes ──────────────────────────────────────────
@@ -69,7 +69,7 @@ class Match extends Model
     // Given one user's ID, return the OTHER user in the match
     public function getOtherUser(int $myId): User
     {
-        return $this->user1_id === $myId
+        return (int) $this->user1_id === $myId
             ? $this->user2
             : $this->user1;
     }
@@ -83,7 +83,7 @@ class Match extends Model
     // Check if a user is part of this match (for authorization)
     public function involvesUser(int $userId): bool
     {
-        return $this->user1_id === $userId
-            || $this->user2_id === $userId;
+        return (int) $this->user1_id === $userId
+            || (int) $this->user2_id === $userId;
     }
 }

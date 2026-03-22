@@ -63,7 +63,7 @@ class User extends Authenticatable  // removed: implements MustVerifyEmail
 
     public function matches()
     {
-        return \App\Models\Match::where('user1_id', $this->id)
+        return \App\Models\UserMatch::where('user1_id', $this->id)
                     ->orWhere('user2_id', $this->id)
                     ->where('is_active', true);
     }

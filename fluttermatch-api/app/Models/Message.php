@@ -30,7 +30,7 @@ class Message extends Model
 
     public function match()
     {
-        return $this->belongsTo(Match::class);
+        return $this->belongsTo(UserMatch::class, 'match_id');
     }
 
     public function sender()

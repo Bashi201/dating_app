@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Like;
-use App\Models\Match as UserMatch; // 'Match' is a reserved word in PHP 8 — alias it
+use App\Models\UserMatch; // Removed former PHP 8 'Match' keyword alias
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
 use App\Http\Resources\MessageResource;
-use App\Models\Match as UserMatch;
+use App\Models\UserMatch;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller

@@ -35,8 +35,6 @@ class DiscoveryNotifier
     if (current.isEmpty) return;
     final next = current.sublist(1);
     state = AsyncValue.data(next);
-    // Refill when running low
-    if (next.length < 3) loadFeed();
   }
 
   Future<Map<String, dynamic>> likeTop() async {
@@ -44,7 +42,16 @@ class DiscoveryNotifier
     if (current.isEmpty) return {'matched': false};
     final userId = current.first.id;
     removeTop();
-    return _service.likeUser(userId);
+    
+    // Wait for the backend to process the like and invalidate the cache
+    final result = await _service.likeUser(userId);
+    
+    // Refill when running low, AFTER like is recorded
+    if ((state.valueOrNull ?? []).length < 3) {
+      loadFeed();
+    }
+    
+    return result;
   }
 
   Future<void> dislikeTop() async {
@@ -52,6 +59,11 @@ class DiscoveryNotifier
     if (current.isEmpty) return;
     final userId = current.first.id;
     removeTop();
+    
     await _service.dislikeUser(userId);
+    
+    if ((state.valueOrNull ?? []).length < 3) {
+      loadFeed();
+    }
   }
 }
