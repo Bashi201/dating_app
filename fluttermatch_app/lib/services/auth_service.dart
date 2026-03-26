@@ -78,6 +78,11 @@ class AuthService {
     final response = await _dio.get('/me');
     return UserModel.fromJson(response.data['data']);
   }
+  // ─── Forgot password ────────────────────────────────
+
+  Future<void> forgotPassword({required String email}) async {
+    await _dio.post(ApiConstants.forgotPass, data: {'email': email});
+  }
 
   // ─── Error Handler ───────────────────────────────────
   String _handleError(DioException e) {

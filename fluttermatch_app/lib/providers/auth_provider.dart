@@ -57,6 +57,10 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       await SecureStorage.saveToken(result.token);
       return result.user;
     });
+    if (state is AsyncData) {
+      await SecureStorage.deleteToken(); // remove token saved above
+      state = const AsyncValue.data(null); // null user = not logged in
+    }
   }
 
   // ─── Login ────────────────────────────────────────
@@ -73,6 +77,11 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> logout() async {
     await _service.logout();
     state = const AsyncValue.data(null);
+  }
+
+  // ─── Forgot Password ───────────────────────────────
+  Future<void> forgotPassword({required String email}) async {
+    await _service.forgotPassword(email: email);
   }
 
   // ─── Refresh User ─────────────────────────────────

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
+import '../auth/register_screen.dart';
+import '../auth/forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -117,7 +119,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                 ),
 
-                const SizedBox(height: 32),
+                // ── Forgot password link ──────────────────────────────────
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    ),
+                    child: Text(
+                      'Forgot password?',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
 
                 // Login button
                 SizedBox(
@@ -150,7 +173,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      // Navigate to register screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
                     },
                     child: const Text("Don't have an account? Sign Up"),
                   ),
