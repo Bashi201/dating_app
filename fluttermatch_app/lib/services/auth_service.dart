@@ -99,4 +99,22 @@ class AuthService {
     }
     return 'Network error. Please try again.';
   }
+  // ── In AuthService (auth_service.dart) — add new method ──────────────────────
+
+  Future<void> resetPassword({
+    required String token,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    await _dio.post(
+      ApiConstants.resetPass, // '/reset-password'
+      data: {
+        'token': token,
+        'email': email,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      },
+    );
+  }
 }

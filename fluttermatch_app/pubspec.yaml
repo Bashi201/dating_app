@@ -12,7 +12,8 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
+  app_links: ^6.3.3
+ 
   # Networking
   dio: ^5.4.0
 

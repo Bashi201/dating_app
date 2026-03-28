@@ -14,8 +14,9 @@ Route::middleware('throttle:6,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
 });
-
+//REST PASSWORD
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Email Verification Route (required for sendEmailVerificationNotification)
 Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Http\Request $request, $id, $hash) {
@@ -60,7 +61,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get ('/matches/{match}/messages', [MessageController::class, 'index']);
     Route::post('/matches/{match}/messages', [MessageController::class, 'store']);
     Route::post('/matches/{match}/read',     [MessageController::class, 'markRead']);
-
+    
+    
     // We'll add more routes here in next steps:
     // Safety
 });

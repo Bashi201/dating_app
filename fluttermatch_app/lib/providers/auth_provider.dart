@@ -93,4 +93,19 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       // Silently fail — auth state stays as-is
     }
   }
+
+  // forgotPassword()
+  Future<void> resetPassword({
+    required String token,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    await _service.resetPassword(
+      token: token,
+      email: email,
+      password: password,
+      passwordConfirmation: passwordConfirmation,
+    );
+  }
 }

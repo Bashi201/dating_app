@@ -824,7 +824,7 @@ class _Step4 extends StatelessWidget {
                             onTap: () => onRemove(i),
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
                               ),
