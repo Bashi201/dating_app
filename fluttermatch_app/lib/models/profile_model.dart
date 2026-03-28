@@ -66,6 +66,11 @@ class ProfileModel {
         [],
   );
 
+  PhotoModel? get primaryPhoto =>
+      photos.isEmpty ? null : photos.firstWhere((p) => p.isPrimary, orElse: () => photos.first);
+
+  String? get primaryPhotoUrl => primaryPhoto?.url;
+
   ProfileModel copyWith({
     String? bio,
     int? age,
@@ -100,3 +105,4 @@ class ProfileModel {
     photos: photos ?? this.photos,
   );
 }
+

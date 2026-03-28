@@ -645,8 +645,9 @@ class _Step3 extends StatelessWidget {
             child: RangeSlider(
               values: ageRange,
               min: 18,
-              max: 80,
-              divisions: 62,
+              max: 99,
+              divisions: 81,
+
               onChanged: onRange,
             ),
           ),

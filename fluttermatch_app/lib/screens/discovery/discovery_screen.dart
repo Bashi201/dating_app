@@ -151,9 +151,11 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
           return true;
         },
         cardBuilder: (ctx, index, percentX, percentY) {
+          if (index >= users.length) return const SizedBox.shrink();
           return Stack(
             children: [
               ProfileCard(user: users[index]),
+
               // Like overlay
               if (index == 0 && percentX > 0.1)
                 Positioned(

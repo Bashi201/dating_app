@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/match_provider.dart';
+import '../providers/profile_provider.dart';
 import 'discovery/discovery_screen.dart';
 import 'matches/matches_screen.dart';
+import 'profile/profile_edit_screen.dart';
+
 
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
@@ -79,6 +82,7 @@ class _ProfileTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).valueOrNull;
+    final profile = ref.watch(profileProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFF5F9),
@@ -100,11 +104,16 @@ class _ProfileTab extends ConsumerWidget {
           children: [
             const SizedBox(height: 16),
 
-            // Avatar placeholder
+            // Profile Picture
             CircleAvatar(
-              radius: 48,
+              radius: 52,
               backgroundColor: const Color(0xFFFFE0F0),
-              child: const Icon(Icons.person, size: 52, color: _pink),
+              backgroundImage: profile?.primaryPhotoUrl != null
+                  ? NetworkImage(profile!.primaryPhotoUrl!)
+                  : null,
+              child: profile?.primaryPhotoUrl == null
+                  ? const Icon(Icons.person, size: 52, color: _pink)
+                  : null,
             ),
             const SizedBox(height: 16),
 
@@ -125,25 +134,38 @@ class _ProfileTab extends ConsumerWidget {
 
             const SizedBox(height: 40),
 
-            // Coming soon notice
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
+            // Edit Profile Button
+            InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileEditScreen()),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.edit_outlined, color: Colors.grey.shade400),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Edit Profile — coming in next step',
-                    style: TextStyle(color: Colors.grey.shade500),
-                  ),
-                ],
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_outlined, color: _pink),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        color: Color(0xFF1A1A2E),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                  ],
+                ),
               ),
             ),
+
 
             const Spacer(),
 
