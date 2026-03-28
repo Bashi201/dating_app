@@ -7,18 +7,21 @@ import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
+import 'screens/auth/verify_email_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/profile_setup/profile_setup_screen.dart';
 
 // ─── Router ───────────────────────────────────────────────────────────────────
-// /reset-password → PUBLIC — no auth check, opened from email link
-// /               → AuthGate — decides login / profile setup / main app
+// Public routes must be FIRST — before AuthGate catches everything
+// /reset-password  → ResetPasswordScreen  (from reset email link)
+// /verify-email    → VerifyEmailScreen    (from verify email link)
+// /                → AuthGate             (login / profile setup / main app)
 
 final _router = GoRouter(
   initialLocation: '/',
   routes: [
-    // ✅ Must be FIRST — before AuthGate catches everything
-    // Handles: http://localhost:8080/reset-password?token=xxx&email=yyy
+    // ✅ Password reset — opened from reset email link
+    // http://localhost:8080/reset-password?token=xxx&email=yyy
     GoRoute(
       path: '/reset-password',
       builder: (context, state) {
@@ -28,13 +31,23 @@ final _router = GoRouter(
       },
     ),
 
+    // ✅ Email verification — opened from verify email link
+    // http://localhost:8080/verify-email?redirect=/api/email/verify/1/hash...
+    GoRoute(
+      path: '/verify-email',
+      builder: (context, state) {
+        final redirect = state.uri.queryParameters['redirect'] ?? '';
+        return VerifyEmailScreen(redirectPath: redirect);
+      },
+    ),
+
     // All other routes go through AuthGate
     GoRoute(path: '/', builder: (context, state) => const AuthGate()),
   ],
 );
 
 void main() {
-  // Removes # from Flutter Web URLs
+  // Removes # from Flutter Web URLs so routes match correctly
   // Without: http://localhost:8080/#/reset-password  ← won't match
   // With:    http://localhost:8080/reset-password    ← matches ✅
   usePathUrlStrategy();
@@ -52,7 +65,7 @@ class FlutterMatchApp extends StatelessWidget {
       title: 'FlutterMatch',
       debugShowCheckedModeBanner: false,
 
-      // go_router handles all URL routing including /reset-password
+      // go_router handles all URL routing
       routerConfig: _router,
 
       theme: ThemeData(

@@ -36,9 +36,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final state = ref.read(authProvider);
     state.whenOrNull(
-      error: (e, _) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      ),
+      error: (e, _) {
+        final message = e.toString();
+        // Show orange snackbar for unverified email
+        final isUnverified = message.contains('verify');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isUnverified
+                  ? '📧 Please verify your email before signing in.'
+                  : message,
+            ),
+            backgroundColor: isUnverified ? Colors.orange : Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -172,14 +189,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Register link
                 Center(
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterScreen(),
+                      ),
+                    ),
                     child: const Text("Don't have an account? Sign Up"),
                   ),
                 ),

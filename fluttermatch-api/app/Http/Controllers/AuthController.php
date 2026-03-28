@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
+
 class AuthController extends Controller
 {
     // ─── POST /api/register ──────────────────────────────
@@ -65,6 +66,15 @@ class AuthController extends Controller
             ], 403);
         }
 
+        // ✅ Block login if email not verified
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'success'        => false,
+                'message'        => 'Please verify your email before logging in.',
+                'email_verified' => false,
+            ], 403);
+        }
+
         // Update last active timestamp
         $user->updateLastActive();
 
@@ -106,56 +116,57 @@ class AuthController extends Controller
         ]);
     }
 
- // ─── POST /api/forgot-password ───────────────────────
-public function forgotPassword(Request $request): JsonResponse
-{
-    $request->validate(['email' => 'required|email']);
+    // ─── POST /api/forgot-password ───────────────────────
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate(['email' => 'required|email']);
 
-    $status = Password::sendResetLink(
-        $request->only('email')
-    );
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
 
-    if ($status === Password::RESET_LINK_SENT) {
-        return response()->json([
-            'success' => true,
-            'message' => 'If this email exists, a reset link has been sent.',
-        ], 200);
-    }
-
-    return response()->json([
-        'success' => false,
-        'message' => __($status),
-    ], 422);
-}
-// ─── POST /api/reset-password ────────────────────────
-public function resetPassword(Request $request): JsonResponse
-{
-    $request->validate([
-        'token'                 => 'required',
-        'email'                 => 'required|email',
-        'password'              => 'required|min:8|confirmed',
-        'password_confirmation' => 'required',
-    ]);
-
-    $status = Password::reset(
-        $request->only('email', 'password', 'password_confirmation', 'token'),
-        function ($user, $password) {
-            $user->forceFill([
-                'password' => Hash::make($password),
-            ])->save();
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'success' => true,
+                'message' => 'If this email exists, a reset link has been sent.',
+            ], 200);
         }
-    );
 
-    if ($status === Password::PASSWORD_RESET) {
         return response()->json([
-            'success' => true,
-            'message' => 'Password has been reset successfully.',
-        ], 200);
+            'success' => false,
+            'message' => __($status),
+        ], 422);
     }
 
-    return response()->json([
-        'success' => false,
-        'message' => __($status),
-    ], 422);
-}
+    // ─── POST /api/reset-password ────────────────────────
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token'                 => 'required',
+            'email'                 => 'required|email',
+            'password'              => 'required|min:8|confirmed',
+            'password_confirmation' => 'required',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Password has been reset successfully.',
+            ], 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => __($status),
+        ], 422);
+    }
 }
