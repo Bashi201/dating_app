@@ -1,14 +1,16 @@
 <?php
-// app/Models/User.php
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
 
-class User extends Authenticatable  // removed: implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -110,5 +112,19 @@ class User extends Authenticatable  // removed: implements MustVerifyEmail
     public function updateLastActive(): void
     {
         $this->update(['last_active_at' => now()]);
+    }
+
+    // ─── Custom Notifications ─────────────────────────────
+
+    // Sends verify email with Flutter deep link
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailNotification());
+    }
+
+    // Sends reset password email with Flutter deep link
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
