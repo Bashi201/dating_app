@@ -47,7 +47,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
     required String passwordConfirmation,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       final result = await _service.register(
         name: name,
         email: email,
@@ -55,22 +55,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
         passwordConfirmation: passwordConfirmation,
       );
       await SecureStorage.saveToken(result.token);
-      return result.user;
-    });
-    if (state is AsyncData) {
-      await SecureStorage.deleteToken(); // remove token saved above
-      state = const AsyncValue.data(null); // null user = not logged in
+      state = AsyncValue.data(result.user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
     }
   }
 
   // ─── Login ────────────────────────────────────────
   Future<void> login({required String email, required String password}) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    try {
       final result = await _service.login(email: email, password: password);
       await SecureStorage.saveToken(result.token);
-      return result.user;
-    });
+      state = AsyncValue.data(result.user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
   }
 
   // ─── Logout ───────────────────────────────────────
@@ -82,6 +84,13 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   // ─── Forgot Password ───────────────────────────────
   Future<void> forgotPassword({required String email}) async {
     await _service.forgotPassword(email: email);
+  }
+
+  Future<void> resendVerification() async {
+    final user = state.asData?.value;
+    if (user != null) {
+      await _service.resendVerification(user.email);
+    }
   }
 
   // ─── Refresh User ─────────────────────────────────

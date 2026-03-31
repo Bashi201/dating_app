@@ -112,14 +112,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
   }
 
   Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.favorite, color: _pink, size: 28),
-          const SizedBox(width: 8),
-          const Text(
+          Icon(Icons.favorite, color: _pink, size: 28),
+          SizedBox(width: 8),
+          Text(
             'FlutterMatch',
             style: TextStyle(
               fontSize: 22,
@@ -158,14 +158,14 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
 
               // Like overlay
               if (index == 0 && percentX > 0.1)
-                Positioned(
+                const Positioned(
                   top: 40,
                   left: 20,
                   child: _SwipeLabel(label: 'LIKE', color: Colors.green),
                 ),
               // Nope overlay
               if (index == 0 && percentX < -0.1)
-                Positioned(
+                const Positioned(
                   top: 40,
                   right: 20,
                   child: _SwipeLabel(label: 'NOPE', color: Colors.red),
@@ -264,7 +264,7 @@ class _ActionBtn extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.25),
+              color: color.withValues(alpha: 0.25),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

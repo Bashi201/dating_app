@@ -1,12 +1,10 @@
-<?php
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-namespace App\Notifications;
-
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
-
-class ResetPasswordNotification extends Notification
+class ResetPasswordNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public string $token;
 
     public function __construct(string $token)

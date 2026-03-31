@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/api_constants.dart';
+import '../../providers/auth_provider.dart';
 
-class VerifyEmailScreen extends StatefulWidget {
+class VerifyEmailScreen extends ConsumerStatefulWidget {
   final String redirectPath;
   const VerifyEmailScreen({super.key, required this.redirectPath});
 
   @override
-  State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
+  ConsumerState<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
 }
 
-class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
+class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   bool _isVerifying = true;
   bool _isSuccess = false;
   String _message = '';
@@ -28,9 +30,13 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       // Call the Laravel signed verification URL
       final url = ApiConstants.baseHost + widget.redirectPath;
       await dio.get(url);
+
+      // ✅ Refresh the user state so AuthGate detects the verification
+      await ref.read(authProvider.notifier).refreshUser();
+
       setState(() {
         _isSuccess = true;
-        _message = 'Your email has been verified! You can now sign in.';
+        _message = 'Your email has been verified! You can now continue.';
       });
     } catch (e) {
       setState(() {

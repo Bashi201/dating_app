@@ -1,6 +1,8 @@
 class ApiConstants {
   // Change this to your Laravel URL
   // Note: 10.0.2.2 is how Android emulator reaches your localhost
+  static const String baseHost = 'http://10.0.2.2:8000';
+  static const String baseUrl = '$baseHost/api';
 
   // Auth
   static const String register = '/register';

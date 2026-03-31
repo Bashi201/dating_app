@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../main_shell.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -15,7 +16,6 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
-  static const _pink = Color(0xFFE84393);
   final _pageController = PageController();
   int _step = 0;
 
@@ -95,7 +95,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     setState(() => _saving = true);
 
     try {
-      final ok = await ref.read(profileProvider.notifier).updateProfile({
+      // 1. Save profile fields
+      await ref.read(profileProvider.notifier).updateProfile({
         'age': _age,
         'gender': _gender,
         'city': _cityCtrl.text.trim(),
@@ -107,14 +108,21 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         'max_distance': _maxDistance.toInt(),
       });
 
-      if (!ok) throw Exception('Could not save profile');
-
+      // 2. Upload photos
       for (final photo in _photos) {
         await ref.read(profileProvider.notifier).uploadPhoto(photo.path);
       }
 
-      // Refresh auth user so profile_complete flag updates
+      // 3. Refresh auth user so profile_complete flag updates
       await ref.read(authProvider.notifier).refreshUser();
+
+      if (!mounted) return;
+
+      // ✅ Navigate to the main app — clear the entire back stack
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainShell()),
+        (route) => false,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/network/dio_client.dart';
-import '../models/photo_model.dart';
 import '../models/profile_model.dart';
 import '../services/profile_service.dart';
 
@@ -28,8 +27,8 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
       final profile = await _service.updateProfile(data);
       state = AsyncValue.data(profile);
       return true;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      rethrow; // let the caller handle the error
     }
   }
 
@@ -43,8 +42,8 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
         );
       }
       return true;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      rethrow; // let the caller handle the error
     }
   }
 

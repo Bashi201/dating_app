@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
+import 'verify_email_status_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -34,48 +35,40 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref
-        .read(authProvider.notifier)
-        .register(
-          name: _nameCtrl.text.trim(),
-          email: _emailCtrl.text.trim(),
-          password: _passwordCtrl.text.trim(),
-          passwordConfirmation: _confirmCtrl.text.trim(),
-        );
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .register(
+            name: _nameCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
+            password: _passwordCtrl.text.trim(),
+            passwordConfirmation: _confirmCtrl.text.trim(),
+          );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    final state = ref.read(authProvider);
+      // ✅ Account created — go to email verification screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const VerifyEmailStatusScreen(),
+        ),
+        (route) => false, // clear back stack
+      );
+    } catch (e) {
+      if (!mounted) return;
 
-    state.whenOrNull(
-      // ✅ Success → show snackbar → go back to login
-      data: (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Account created! Please sign in 🎉'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      // ❌ Show actual error to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-        Navigator.pop(context); // back to LoginScreen
-      },
-      // ❌ Error → show error snackbar
-      error: (e, _) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      },
-    );
+        ),
+      );
+    }
   }
 
   // ── Build ───────────────────────────────────────────────────────────────────
@@ -126,9 +119,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty)
+                    if (v == null || v.trim().isEmpty) {
                       return 'Name is required';
-                    if (v.trim().length < 2) return 'Enter your full name';
+                    }
+                    if (v.trim().length < 2) {
+                      return 'Enter your full name';
+                    }
                     return null;
                   },
                 ),
@@ -147,8 +143,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty)
+                    if (v == null || v.trim().isEmpty) {
                       return 'Email is required';
+                    }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
                       return 'Enter a valid email';
                     }
@@ -218,8 +215,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     if (v == null || v.isEmpty) {
                       return 'Please confirm your password';
                     }
-                    if (v != _passwordCtrl.text)
+                    if (v != _passwordCtrl.text) {
                       return 'Passwords do not match';
+                    }
                     return null;
                   },
                 ),

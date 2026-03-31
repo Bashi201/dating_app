@@ -8,6 +8,7 @@ import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
 import 'screens/auth/verify_email_screen.dart';
+import 'screens/auth/verify_email_status_screen.dart';
 import 'screens/main_shell.dart';
 import 'screens/profile_setup/profile_setup_screen.dart';
 
@@ -104,6 +105,11 @@ class AuthGate extends ConsumerWidget {
       data: (user) {
         // No user / logged out → login screen
         if (user == null) return const LoginScreen();
+
+        // 🟢 Check if email is verified
+        if (user.emailVerified == false) {
+          return const VerifyEmailStatusScreen();
+        }
 
         // Logged in but profile not complete → profile setup
         if (user.profileComplete == false) return const ProfileSetupScreen();

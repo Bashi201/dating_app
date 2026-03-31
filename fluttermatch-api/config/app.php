@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend Application URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used to generate email verification and password reset links
+    | for the Flutter application.
+    |
+    */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:8080'),
+
 ];

@@ -68,7 +68,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (token == null) return;
 
     // Reverb WebSocket URL
-    final wsUrl =
+    const wsUrl =
         'ws://${ApiConstants.reverbHost}:${ApiConstants.reverbPort}/app/${ApiConstants.reverbKey}'
         '?protocol=7&client=flutter&version=1.0';
 
@@ -251,7 +251,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -350,7 +350,7 @@ class _MessageBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withValues(alpha: 0.06),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -376,7 +376,7 @@ class _MessageBubble extends StatelessWidget {
                         _formatTime(message.createdAt),
                         style: TextStyle(
                           color: isMine
-                              ? Colors.white.withOpacity(0.7)
+                              ? Colors.white.withValues(alpha: 0.7)
                               : Colors.grey.shade400,
                           fontSize: 10,
                         ),
@@ -388,7 +388,7 @@ class _MessageBubble extends StatelessWidget {
                           size: 13,
                           color: message.isRead
                               ? Colors.white
-                              : Colors.white.withOpacity(0.6),
+                              : Colors.white.withValues(alpha: 0.6),
                         ),
                       ],
                     ],

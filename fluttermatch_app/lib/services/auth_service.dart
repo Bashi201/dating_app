@@ -101,6 +101,10 @@ class AuthService {
   }
   // ── In AuthService (auth_service.dart) — add new method ──────────────────────
 
+  Future<void> resendVerification(String email) async {
+    await _dio.post('/email/resend', data: {'email': email});
+  }
+
   Future<void> resetPassword({
     required String token,
     required String email,

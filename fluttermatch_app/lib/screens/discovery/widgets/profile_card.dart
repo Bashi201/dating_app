@@ -4,8 +4,6 @@ import '../../../models/discover_user_model.dart';
 class ProfileCard extends StatelessWidget {
   final DiscoverUserModel user;
 
-  static const _pink = Color(0xFFE84393);
-
   const ProfileCard({super.key, required this.user});
 
   @override
@@ -16,7 +14,7 @@ class ProfileCard extends StatelessWidget {
         color: Colors.grey.shade200,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: Colors.black.withValues(alpha: 0.12),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -46,8 +44,8 @@ class ProfileCard extends StatelessWidget {
                     colors: [
                       Colors.transparent,
                       Colors.transparent,
-                      Colors.black.withOpacity(0.3),
-                      Colors.black.withOpacity(0.85),
+                      Colors.black.withValues(alpha: 0.3),
+                      Colors.black.withValues(alpha: 0.85),
                     ],
                     stops: const [0.0, 0.45, 0.7, 1.0],
                   ),
@@ -141,10 +139,10 @@ class ProfileCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.4),
+                                color: Colors.white.withValues(alpha: 0.4),
                               ),
                             ),
                             child: Text(

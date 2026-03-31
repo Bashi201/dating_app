@@ -8,8 +8,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends VerifyEmail
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+
+class VerifyEmailNotification extends VerifyEmail implements ShouldQueue
 {
+    use Queueable;
+
     public function toMail($notifiable): MailMessage
     {
         $verificationUrl = $this->verificationUrl($notifiable);
@@ -25,8 +30,11 @@ class VerifyEmailNotification extends VerifyEmail
 
     protected function verificationUrl($notifiable): string
     {
-        // Build signed Laravel verification URL
-        $temporarySignedUrl = URL::temporarySignedRoute(
+        // Generates a direct signed API URL that the emulator browser can open.
+        // e.g. http://10.0.2.2:8000/api/email/verify/{id}/{hash}?expires=...&signature=...
+        // When the user opens this in the emulator's Chrome, it immediately verifies
+        // the email in the database. They then tap "I've Verified My Email" in the app.
+        return URL::temporarySignedRoute(
             'verification.verify',
             Carbon::now()->addMinutes(
                 Config::get('auth.verification.expire', 60)
@@ -36,14 +44,5 @@ class VerifyEmailNotification extends VerifyEmail
                 'hash' => sha1($notifiable->getEmailForVerification()),
             ]
         );
-
-        // Extract path + query from Laravel URL
-        $parsedUrl = parse_url($temporarySignedUrl);
-        $pathQuery = $parsedUrl['path'] . '?' . $parsedUrl['query'];
-
-        // Point to Flutter Web verify screen
-        return config('app.frontend_url')
-            . '/verify-email'
-            . '?redirect=' . urlencode($pathQuery);
     }
 }
