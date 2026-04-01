@@ -6,12 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../core/constants/api_constants.dart';
+import '../../core/network/dio_client.dart';
 import '../../core/storage/secure_storage.dart';
 import '../../models/match_model.dart';
 import '../../models/message_model.dart';
 import '../../providers/match_provider.dart';
+import '../../screens/report/report_sheet.dart';
 import '../../services/match_service.dart';
-import '../../core/network/dio_client.dart';
+import '../../services/safety_service.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final MatchModel match;
@@ -67,14 +69,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final token = await SecureStorage.getToken();
     if (token == null) return;
 
-    // Reverb WebSocket URL
     const wsUrl =
         'ws://${ApiConstants.reverbHost}:${ApiConstants.reverbPort}/app/${ApiConstants.reverbKey}'
         '?protocol=7&client=flutter&version=1.0';
 
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
-    // Subscribe to private channel
     _channel!.sink.add(
       jsonEncode({
         'event': 'pusher:subscribe',
@@ -105,7 +105,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<String> _getChannelAuth(String token) async {
-    // Ask Laravel to sign the channel subscription
     try {
       final dio = ref.read(dioProvider);
       final res = await dio.post(
@@ -135,10 +134,71 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _scrollToBottom();
       ref.read(matchProvider.notifier).updateLastMessage(widget.match.id, msg);
     } catch (_) {
-      _msgCtrl.text = body; // restore on failure
+      _msgCtrl.text = body;
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  Future<void> _blockUser() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Block ${widget.match.otherUser.name}?'),
+        content: const Text(
+          'They won\'t be able to message you and won\'t appear in your discovery feed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Block', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await SafetyService(
+          ref.read(dioProvider),
+        ).blockUser(widget.match.otherUser.id);
+        await ref.read(matchProvider.notifier).loadMatches();
+        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${widget.match.otherUser.name} has been blocked.'),
+              backgroundColor: Colors.grey.shade800,
+            ),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to block. Try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  void _reportUser() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ReportSheet(
+        userId: widget.match.otherUser.id,
+        userName: widget.match.otherUser.name,
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -194,6 +254,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ],
         ),
+        // ── Three-dot menu ──────────────────────────
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Color(0xFF1A1A2E)),
+            onSelected: (val) {
+              if (val == 'report') _reportUser();
+              if (val == 'block') _blockUser();
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_outlined, color: Colors.orange, size: 20),
+                    SizedBox(width: 10),
+                    Text('Report'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'block',
+                child: Row(
+                  children: [
+                    Icon(Icons.block, color: Colors.red, size: 20),
+                    SizedBox(width: 10),
+                    Text('Block', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -403,9 +495,9 @@ class _MessageBubble extends StatelessWidget {
   }
 
   String _formatTime(DateTime dt) {
-    final localDt = dt.toLocal();
-    final h = localDt.hour.toString().padLeft(2, '0');
-    final m = localDt.minute.toString().padLeft(2, '0');
+    final local = dt.toLocal();
+    final h = local.hour.toString().padLeft(2, '0');
+    final m = local.minute.toString().padLeft(2, '0');
     return '$h:$m';
   }
 }

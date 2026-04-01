@@ -23,9 +23,13 @@ class DiscoveryController extends Controller
 
         $users = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($me, $profile) {
 
-            // IDs to exclude: self + already liked/disliked + blocked
+            // IDs to exclude: self + already liked/disliked + blocked (mutual)
             $likedIds   = $me->likesGiven()->pluck('liked_id');
-            $blockedIds = $me->blocks()->pluck('blocked_id');
+            
+            $blockedByMe    = $me->blocks()->pluck('blocked_id');
+            $blockedByOthers = \App\Models\Block::where('blocked_id', $me->id)->pluck('blocker_id');
+            $blockedIds      = $blockedByMe->merge($blockedByOthers);
+            
             $excludeIds = $likedIds->merge($blockedIds)->push($me->id)->unique()->toArray();
 
             // Gender filter

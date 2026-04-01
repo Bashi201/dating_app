@@ -80,6 +80,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Report::class, 'reporter_id');
     }
 
+    public function reportsReceived()
+    {
+        return $this->hasMany(Report::class, 'reported_id');
+    }
+
     // ─── Helper Scopes ───────────────────────────────────
 
     public function scopeActive($query)
