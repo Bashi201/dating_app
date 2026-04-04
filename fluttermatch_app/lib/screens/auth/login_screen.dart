@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../auth/register_screen.dart';
 import '../auth/forgot_password_screen.dart';
@@ -27,18 +30,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
     await ref
         .read(authProvider.notifier)
         .login(email: _emailCtrl.text.trim(), password: _passCtrl.text.trim());
-
     if (!mounted) return;
-
     final state = ref.read(authProvider);
     state.whenOrNull(
       error: (e, _) {
         final message = e.toString();
-        // Show orange snackbar for unverified email
         final isUnverified = message.contains('verify');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -49,7 +48,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
             backgroundColor: isUnverified ? Colors.orange : Colors.red,
             behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 4),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -62,146 +60,210 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
-    final theme = Theme.of(context);
+    final primary = Theme.of(context).colorScheme.primary;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 48),
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          const GlassBackground(child: SizedBox.expand()),
+          Positioned(
+            top: -70,
+            right: -50,
+            child: GlassBlob(size: 240, opacity: 0.13),
+          ),
+          Positioned(
+            bottom: 80,
+            left: -60,
+            child: GlassBlob(size: 180, opacity: 0.10),
+          ),
+          Positioned(
+            top: 200,
+            left: -40,
+            child: GlassBlob(size: 100, opacity: 0.07),
+          ),
 
-                // Logo / Title
-                Text(
-                  'Welcome back 👋',
-                  style: GoogleFonts.poppins(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in to continue',
-                  style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
-                ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 48),
 
-                const SizedBox(height: 48),
-
-                // Email field
-                TextFormField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
+                    // ── Logo ─────────────────────────────────────────────────
+                    Center(
+                      child:
+                          GlassCard(
+                                borderRadius: 28,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 24,
+                                ),
+                                child: Image.asset(
+                                  'assets/images/lovi-stacked.png',
+                                  height: 100,
+                                  fit: BoxFit.contain,
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(duration: 500.ms)
+                              .slideY(begin: -0.2, end: 0),
                     ),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email is required';
-                    if (!v.contains('@')) return 'Enter a valid email';
-                    return null;
-                  },
-                ),
 
-                const SizedBox(height: 16),
+                    const SizedBox(height: 36),
 
-                // Password field
-                TextFormField(
-                  controller: _passCtrl,
-                  obscureText: _obscure,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscure ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
-                    if (v.length < 8) return 'Minimum 8 characters';
-                    return null;
-                  },
-                ),
-
-                // ── Forgot password link ──────────────────────────────────
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ForgotPasswordScreen(),
-                      ),
-                    ),
-                    child: Text(
-                      'Forgot password?',
+                    Text(
+                      'Welcome back 👋',
                       style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: onSurface,
                       ),
-                    ),
-                  ),
-                ),
+                    ).animate().fadeIn(delay: 150.ms),
 
-                const SizedBox(height: 16),
-
-                // Login button
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Sign in to continue',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: onSurfaceVariant,
                       ),
-                    ),
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Sign In',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    ).animate().fadeIn(delay: 200.ms),
+
+                    const SizedBox(height: 28),
+
+                    // ── Input Glass Card ──────────────────────────────────────
+                    GlassCard(
+                          borderRadius: 20,
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _emailCtrl,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: const InputDecoration(
+                                  labelText: 'Email',
+                                  prefixIcon: Icon(Icons.email_outlined),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty)
+                                    return 'Email is required';
+                                  if (!v.contains('@'))
+                                    return 'Enter a valid email';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 14),
+                              TextFormField(
+                                controller: _passCtrl,
+                                obscureText: _obscure,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      _obscure
+                                          ? Icons.visibility_off_rounded
+                                          : Icons.visibility_rounded,
+                                    ),
+                                    onPressed: () =>
+                                        setState(() => _obscure = !_obscure),
+                                  ),
+                                ),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty)
+                                    return 'Password is required';
+                                  if (v.length < 8)
+                                    return 'Minimum 8 characters';
+                                  return null;
+                                },
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const ForgotPasswordScreen(),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Forgot password?',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                  ),
-                ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 300.ms)
+                        .slideY(begin: 0.15, end: 0),
 
-                const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                // Register link
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
+                    // ── Gradient Login Button ────────────────────────────────
+                    GradientButton(
+                      onPressed: isLoading ? null : _login,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ).animate().fadeIn(delay: 400.ms),
+
+                    const SizedBox(height: 20),
+
+                    Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
+                        ),
+                        child: Text(
+                          "Don't have an account? Sign Up",
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text("Don't have an account? Sign Up"),
-                  ),
+                    ).animate().fadeIn(delay: 450.ms),
+
+                    const SizedBox(height: 32),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

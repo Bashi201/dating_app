@@ -1,98 +1,209 @@
 @extends('admin.layout')
 
+@section('title', 'Safety Reports')
+@section('page-title', 'Safety Reports')
+
 @section('content')
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Pending Safety Reports</h2>
-    <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-bold">{{ $reports->total() }} Remaining</span>
-</div>
 
-@if($reports->isEmpty())
-<div class="bg-white p-12 rounded-2xl shadow text-center">
-    <div class="text-5xl mb-4">🎉</div>
-    <h3 class="text-xl font-bold text-gray-800">All Clear!</h3>
-    <p class="text-gray-500">There are no pending reports to review right now.</p>
-</div>
-@else
-<div class="grid grid-cols-2 gap-6">
-    @foreach($reports as $report)
-    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-400 hover:shadow-md transition">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <span class="text-[10px] font-bold uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded">Pending Review</span>
-                <div class="text-gray-400 text-[11px] mt-1">{{ $report->created_at->format('M d, Y - H:i') }}</div>
-            </div>
-            <div class="flex -space-x-3">
-                <div class="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-xs font-bold text-blue-600" title="Reporter: {{ $report->reporter->name }}">
-                    {{ substr($report->reporter->name, 0, 1) }}
-                </div>
-                <div class="w-8 h-8 rounded-full bg-red-100 border-2 border-white flex items-center justify-center text-xs font-bold text-red-600" title="Reported: {{ $report->reported->name }}">
-                    {{ substr($report->reported->name, 0, 1) }}
-                </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+        <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:400;color:var(--text);">Pending
+                Review</h2>
+            <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Reports requiring your attention</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div
+                style="background:rgba(230,126,34,0.12);border:1px solid rgba(230,126,34,0.3);border-radius:20px;padding:7px 18px;font-size:13px;color:#F0A04A;font-weight:600;display:flex;align-items:center;gap:7px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                {{ $reports->total() }} Remaining
             </div>
         </div>
+    </div>
 
-        <div class="flex gap-4 mb-4">
-            <div class="flex-shrink-0">
+    @if($reports->isEmpty())
+        <div
+            style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;background:var(--surface-card);border:1px solid var(--border-light);border-radius:20px;text-align:center;">
+            <div style="font-size:52px;margin-bottom:20px;">🍒</div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-bottom:8px;">All Clear!</h3>
+            <p style="font-size:14px;color:var(--text-muted);">No pending reports right now. The community is safe.</p>
+        </div>
+    @else
+
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;">
+            @foreach($reports as $report)
                 @php $photo = $report->reported->photos->firstWhere('is_primary', true) ?? $report->reported->photos->first(); @endphp
-                <img src="{{ $photo?->url ?? 'https://via.placeholder.com/80' }}" class="w-20 h-20 rounded-lg object-cover">
-            </div>
-            <div class="flex-1">
-                <div class="text-sm text-gray-500">Reported User</div>
-                <div class="font-bold text-gray-800">{{ $report->reported->name }}</div>
-                <div class="text-xs text-gray-400">{{ $report->reported->email }}</div>
-                <div class="mt-2 bg-gray-50 p-2 rounded text-sm font-medium text-red-700">
-                    Reason: {{ str_replace('_', ' ', ucwords($report->reason)) }}
+                <div class="card report-card" style="animation-delay:{{ $loop->index * 0.06 }}s">
+                    <div class="card-pad">
+                        <!-- Header row -->
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+                            <div>
+                                <span class="badge badge-pending">Pending Review</span>
+                                <div
+                                    style="font-size:11px;color:var(--text-faint);margin-top:7px;display:flex;align-items:center;gap:5px;">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    {{ $report->created_at->format('M d, Y · H:i') }}
+                                </div>
+                            </div>
+                            <!-- Reporter vs Reported avatars -->
+                            <div style="display:flex;align-items:center;gap:-8px;">
+                                <div style="display:flex;align-items:center;gap:2px;">
+                                    <div class="avatar avatar-blue" style="width:32px;height:32px;font-size:12px;"
+                                        title="Reporter: {{ $report->reporter->name }}">{{ substr($report->reporter->name, 0, 1) }}
+                                    </div>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)"
+                                        stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                        <polyline points="12 5 19 12 12 19" />
+                                    </svg>
+                                    <div class="avatar"
+                                        style="width:32px;height:32px;font-size:12px;background:rgba(231,76,60,0.2);color:#FF6B6B;border:1px solid rgba(231,76,60,0.3);"
+                                        title="Reported: {{ $report->reported->name }}">{{ substr($report->reported->name, 0, 1) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reported user info -->
+                        <div
+                            style="display:flex;gap:16px;margin-bottom:18px;padding:16px;background:rgba(255,255,255,0.025);border:1px solid var(--border-light);border-radius:12px;">
+                            <img src="{{ $photo?->url ?? 'https://ui-avatars.com/api/?name=' . urlencode($report->reported->name) . '&background=9B1B30&color=fff&size=80' }}"
+                                style="width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid var(--border);">
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:11px;color:var(--text-faint);margin-bottom:3px;">Reported User</div>
+                                <div style="font-weight:600;font-size:15px;color:var(--text);margin-bottom:2px;">
+                                    {{ $report->reported->name }}</div>
+                                <div
+                                    style="font-size:12px;color:var(--text-muted);margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    {{ $report->reported->email }}</div>
+                                <div
+                                    style="display:inline-flex;align-items:center;gap:5px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.2);border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:600;color:#FF8080;">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                        <path
+                                            d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                    </svg>
+                                    {{ str_replace('_', ' ', ucwords($report->reason)) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        @if($report->description)
+                            <div
+                                style="margin-bottom:20px;padding:12px 16px;border-left:2px solid var(--border);border-radius:0 8px 8px 0;background:rgba(255,255,255,0.02);">
+                                <div
+                                    style="font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;">
+                                    Description</div>
+                                <p style="font-size:13px;color:var(--text-muted);line-height:1.6;font-style:italic;">
+                                    "{{ $report->description }}"</p>
+                            </div>
+                        @else
+                            <div
+                                style="margin-bottom:20px;padding:10px 16px;border-left:2px solid var(--border-light);border-radius:0 8px 8px 0;">
+                                <p style="font-size:13px;color:var(--text-faint);font-style:italic;">No description provided.</p>
+                            </div>
+                        @endif
+
+                        <!-- Actions -->
+                        <div style="display:flex;gap:10px;padding-top:16px;border-top:1px solid var(--border-light);">
+                            <a href="/admin/users/{{ $report->reported_id }}" class="btn btn-ghost btn-sm"
+                                style="flex:1;justify-content:center;text-decoration:none;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                View Profile
+                            </a>
+                            <form action="/api/admin/reports/{{ $report->id }}/dismiss" method="POST" style="flex:1;">
+                                @csrf
+                                <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Dismiss
+                                </button>
+                            </form>
+                            <button onclick="openBanModal({{ $report->id }}, '{{ addslashes($report->reported->name) }}')"
+                                class="btn btn-danger btn-sm" style="flex:1;justify-content:center;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                                </svg>
+                                Ban User
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @endforeach
         </div>
 
-        <div class="mb-6">
-            <div class="text-sm text-gray-400 mb-1">Description</div>
-            <p class="text-sm text-gray-700 italic border-l-2 pl-3 border-gray-100">
-                "{{ $report->description ?: 'No detail provided' }}"
-            </p>
+        <div style="margin-top:32px;">
+            {{ $reports->links() }}
         </div>
+    @endif
 
-        <div class="flex gap-3 mt-auto pt-4 border-t">
-            <a href="/admin/users/{{ $report->reported_id }}" class="flex-1 px-4 py-2 border rounded-lg text-center text-sm font-bold hover:bg-gray-50 transition">View Profile</a>
-            <form action="/api/admin/reports/{{ $report->id }}/dismiss" method="POST" class="flex-1">
-                @csrf
-                <button type="submit" class="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition">Dismiss</button>
-            </form>
-            <button onclick="openBanModal({{ $report->id }}, '{{ $report->reported->name }}')" class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition shadow-sm">Ban User</button>
-        </div>
-    </div>
-    @endforeach
-</div>
-<div class="mt-8">
-    {{ $reports->links() }}
-</div>
-@endif
-
-<!-- Resolve Modal -->
-<div id="resolve-modal" class="fixed inset-0 bg-black/60 items-center justify-center z-50 hidden">
-    <div class="bg-white p-8 rounded-2xl w-[450px] shadow-2xl">
-        <h3 class="text-xl font-bold mb-2">Resolve Report & Ban User</h3>
-        <p class="text-sm text-gray-500 mb-6">Banning <span id="target-user-name" class="font-bold text-red-600"></span> will resolve this report and all other pending reports against them.</p>
-        
-        <form id="action-form" method="POST">
-            @csrf
-            <label class="block text-sm text-gray-500 mb-2">Official Ban Reason</label>
-            <textarea name="reason" required class="w-full border rounded-xl p-3 h-32 focus:ring-2 focus:ring-red-500 outline-none mb-6"></textarea>
-            
-            <div class="flex gap-3">
-                <button type="button" onclick="document.getElementById('resolve-modal').style.display='none'" class="flex-1 px-4 py-3 border rounded-xl hover:bg-gray-50 transition">Cancel</button>
-                <button type="submit" class="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold shadow-lg transition">Apply Ban & Resolve</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-    function openBanModal(reportId, name) {
-        document.getElementById('target-user-name').innerText = name;
-        document.getElementById('action-form').action = '/api/admin/reports/' + reportId + '/action';
-        document.getElementById('resolve-modal').style.display = 'flex';
-    }
-</script>
 @endsection
+
+@push('modals')
+    <!-- Ban Modal -->
+    <div id="resolve-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">
+                <div
+                    style="width:42px;height:42px;border-radius:12px;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);display:flex;align-items:center;justify-content:center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                    </svg>
+                </div>
+                <h3 class="modal-title">Ban User</h3>
+            </div>
+            <p class="modal-subtitle">
+                Banning <strong id="target-user-name" style="color:#FF8080;"></strong> will resolve this report and all
+                pending reports against them.
+            </p>
+
+            <form id="action-form" method="POST">
+                @csrf
+                <label class="form-label">Official Ban Reason</label>
+                <textarea name="reason" required class="form-textarea"
+                    placeholder="Describe the reason for this ban. This may be shown to the user."></textarea>
+
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                    <button type="button" onclick="document.getElementById('resolve-modal').style.display='none'"
+                        class="btn btn-ghost" style="flex:1;justify-content:center;">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger"
+                        style="flex:1;justify-content:center;background:var(--danger);color:#fff;border-color:var(--danger);box-shadow:0 4px 20px rgba(231,76,60,0.4);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                        </svg>
+                        Apply Ban & Resolve
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endpush
+
+@push('scripts')
+    <script>
+        function openBanModal(reportId, name) {
+            document.getElementById('target-user-name').innerText = name;
+            document.getElementById('action-form').action = '/api/admin/reports/' + reportId + '/action';
+            document.getElementById('resolve-modal').style.display = 'flex';
+        }
+        document.getElementById('resolve-modal').addEventListener('click', function (e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+    </script>
+@endpush

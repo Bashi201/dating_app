@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../main_shell.dart';
@@ -38,64 +41,35 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   bool _saving = false;
 
   static const _allInterests = [
-    'Music',
-    'Sports',
-    'Travel',
-    'Food & Drink',
-    'Gaming',
-    'Reading',
-    'Movies',
-    'Fitness',
-    'Art',
-    'Cooking',
-    'Dancing',
-    'Yoga',
-    'Hiking',
-    'Photography',
-    'Fashion',
-    'Tech',
-    'Pets',
-    'Coffee',
-    'Surfing',
-    'Running',
+    'Music', 'Sports', 'Travel', 'Food & Drink', 'Gaming',
+    'Reading', 'Movies', 'Fitness', 'Art', 'Cooking',
+    'Dancing', 'Yoga', 'Hiking', 'Photography', 'Fashion',
+    'Tech', 'Pets', 'Coffee', 'Surfing', 'Running',
   ];
 
   bool get _step1Ok =>
-      _age != null &&
-      _age! >= 18 &&
-      _gender != null &&
-      _cityCtrl.text.trim().isNotEmpty;
+      _age != null && _age! >= 18 && _gender != null && _cityCtrl.text.trim().isNotEmpty;
   bool get _step2Ok => _bioCtrl.text.trim().length >= 10;
   bool get _step3Ok => _interestedIn != null;
   bool get _step4Ok => _photos.isNotEmpty;
-
   bool get _canProceed => [_step1Ok, _step2Ok, _step3Ok, _step4Ok][_step];
 
   void _next() => _pageController.nextPage(
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeInOut,
-  );
+      duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
 
   void _back() => _pageController.previousPage(
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeInOut,
-  );
+      duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
 
   Future<void> _pickPhoto() async {
     if (_photos.length >= 6) return;
-    final file = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (file != null) setState(() => _photos.add(file));
   }
 
   Future<void> _save() async {
     if (!_step4Ok) return;
     setState(() => _saving = true);
-
     try {
-      // 1. Save profile fields
       await ref.read(profileProvider.notifier).updateProfile({
         'age': _age,
         'gender': _gender,
@@ -107,18 +81,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         'max_age': _ageRange.end.toInt(),
         'max_distance': _maxDistance.toInt(),
       });
-
-      // 2. Upload photos
       for (final photo in _photos) {
         await ref.read(profileProvider.notifier).uploadPhoto(photo.path);
       }
-
-      // 3. Refresh auth user so profile_complete flag updates
       await ref.read(authProvider.notifier).refreshUser();
-
       if (!mounted) return;
-
-      // ✅ Navigate to the main app — clear the entire back stack
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainShell()),
         (route) => false,
@@ -144,122 +111,92 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _Header(step: _step, total: 4),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                onPageChanged: (i) => setState(() => _step = i),
-                children: [
-                  _Step1(
-                    age: _age,
-                    gender: _gender,
-                    cityCtrl: _cityCtrl,
-                    onAge: (v) => setState(() => _age = v),
-                    onGender: (v) => setState(() => _gender = v),
-                    onCityChange: (_) => setState(() {}),
-                  ),
-                  _Step2(
-                    bioCtrl: _bioCtrl,
-                    selected: _selectedInterests,
-                    all: _allInterests,
-                    onToggle: (v) {
-                      setState(() {
-                        _selectedInterests.contains(v)
-                            ? _selectedInterests.remove(v)
-                            : _selectedInterests.length < 10
-                            ? _selectedInterests.add(v)
-                            : null;
-                      });
-                    },
-                    onBioChange: (_) => setState(() {}),
-                  ),
-                  _Step3(
-                    interestedIn: _interestedIn,
-                    ageRange: _ageRange,
-                    maxDistance: _maxDistance,
-                    onInterested: (v) => setState(() => _interestedIn = v),
-                    onRange: (v) => setState(() => _ageRange = v),
-                    onDist: (v) => setState(() => _maxDistance = v),
-                  ),
-                  _Step4(
-                    photos: _photos,
-                    onAdd: _pickPhoto,
-                    onRemove: (i) => setState(() => _photos.removeAt(i)),
-                  ),
-                ],
-              ),
-            ),
-            _NavBar(
-              step: _step,
-              canProceed: _canProceed,
-              isLast: _step == 3,
-              saving: _saving,
-              onNext: _next,
-              onBack: _back,
-              onSave: _save,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ──────────────────────────────────────────────────────────────
-// Header
-// ──────────────────────────────────────────────────────────────
-class _Header extends StatelessWidget {
-  final int step;
-  final int total;
-
-  const _Header({required this.step, required this.total});
-
-  static const _titles = ['Basic Info', 'About You', 'Preferences', 'Photos'];
-  static const _pink = Color(0xFFE84393);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      backgroundColor: Colors.transparent,
+      body: Stack(
         children: [
-          Row(
-            children: List.generate(total, (i) {
-              return Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(right: i < total - 1 ? 6 : 0),
-                  height: 4,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: i <= step ? _pink : Colors.grey.shade200,
+          // ── Gradient background ────────────────────────────────────────────
+          const GlassBackground(child: SizedBox.expand()),
+
+          // ── Decorative blobs ───────────────────────────────────────────────
+          Positioned(top: -60, right: -50, child: GlassBlob(size: 220, opacity: 0.11)),
+          Positioned(bottom: 120, left: -60, child: GlassBlob(size: 160, opacity: 0.09)),
+
+          SafeArea(
+            child: Column(
+              children: [
+                // ── Header with progress ───────────────────────────────────
+                _GlassHeader(step: _step, total: 4, primary: primary, onSurface: onSurface,
+                    onSurfaceVariant: onSurfaceVariant),
+
+                // ── Page content ───────────────────────────────────────────
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    onPageChanged: (i) => setState(() => _step = i),
+                    children: [
+                      _Step1(
+                        age: _age, gender: _gender, cityCtrl: _cityCtrl,
+                        onAge: (v) => setState(() => _age = v),
+                        onGender: (v) => setState(() => _gender = v),
+                        onCityChange: (_) => setState(() {}),
+                        primary: primary, onSurface: onSurface,
+                        onSurfaceVariant: onSurfaceVariant,
+                      ),
+                      _Step2(
+                        bioCtrl: _bioCtrl,
+                        selected: _selectedInterests,
+                        all: _allInterests,
+                        onToggle: (v) {
+                          setState(() {
+                            _selectedInterests.contains(v)
+                                ? _selectedInterests.remove(v)
+                                : _selectedInterests.length < 10
+                                    ? _selectedInterests.add(v)
+                                    : null;
+                          });
+                        },
+                        onBioChange: (_) => setState(() {}),
+                        primary: primary, onSurface: onSurface,
+                        onSurfaceVariant: onSurfaceVariant,
+                      ),
+                      _Step3(
+                        interestedIn: _interestedIn,
+                        ageRange: _ageRange,
+                        maxDistance: _maxDistance,
+                        onInterested: (v) => setState(() => _interestedIn = v),
+                        onRange: (v) => setState(() => _ageRange = v),
+                        onDist: (v) => setState(() => _maxDistance = v),
+                        primary: primary, onSurface: onSurface,
+                        onSurfaceVariant: onSurfaceVariant,
+                      ),
+                      _Step4(
+                        photos: _photos,
+                        onAdd: _pickPhoto,
+                        onRemove: (i) => setState(() => _photos.removeAt(i)),
+                        primary: primary, onSurfaceVariant: onSurfaceVariant,
+                      ),
+                    ],
                   ),
                 ),
-              );
-            }),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Step ${step + 1} of $total',
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _titles[step],
-            style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A2E),
+
+                // ── Glass Nav Bar ──────────────────────────────────────────
+                _GlassNavBar(
+                  step: _step,
+                  canProceed: _canProceed,
+                  isLast: _step == 3,
+                  saving: _saving,
+                  onNext: _next,
+                  onBack: _back,
+                  onSave: _save,
+                  primary: primary,
+                ),
+              ],
             ),
           ),
         ],
@@ -268,46 +205,123 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Nav Bar
-// ──────────────────────────────────────────────────────────────
-class _NavBar extends StatelessWidget {
-  final int step;
-  final bool canProceed, isLast, saving;
-  final VoidCallback onNext, onBack, onSave;
+// ─── Glass Header with Progress ────────────────────────────────────────────────
 
-  static const _pink = Color(0xFFE84393);
+class _GlassHeader extends StatelessWidget {
+  final int step, total;
+  final Color primary, onSurface, onSurfaceVariant;
 
-  const _NavBar({
-    required this.step,
-    required this.canProceed,
-    required this.isLast,
-    required this.saving,
-    required this.onNext,
-    required this.onBack,
-    required this.onSave,
+  static const _titles = ['Basic Info', 'About You', 'Preferences', 'Photos'];
+  static const _emojis = ['👤', '✨', '💝', '📸'];
+
+  const _GlassHeader({
+    required this.step, required this.total,
+    required this.primary, required this.onSurface, required this.onSurfaceVariant,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: GlassCard(
+        borderRadius: 20,
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Progress dots / pills
+            Row(
+              children: List.generate(total, (i) {
+                final active = i == step;
+                final done = i < step;
+                return Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: EdgeInsets.only(right: i < total - 1 ? 6 : 0),
+                    height: 5,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(3),
+                      color: done
+                          ? primary.withValues(alpha: 0.55)
+                          : active
+                              ? primary
+                              : primary.withValues(alpha: 0.15),
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text(
+                  '${_emojis[step]}  ${_titles[step]}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: onSurface,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${step + 1} / $total',
+                    style: TextStyle(
+                      color: primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 300.ms);
+  }
+}
+
+// ─── Glass Nav Bar ────────────────────────────────────────────────────────────
+
+class _GlassNavBar extends StatelessWidget {
+  final int step;
+  final bool canProceed, isLast, saving;
+  final VoidCallback onNext, onBack, onSave;
+  final Color primary;
+
+  const _GlassNavBar({
+    required this.step, required this.canProceed, required this.isLast,
+    required this.saving, required this.onNext, required this.onBack,
+    required this.onSave, required this.primary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
       child: Row(
         children: [
           if (step > 0) ...[
-            Expanded(
-              child: OutlinedButton(
-                onPressed: onBack,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: _pink),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            GlassCard(
+              borderRadius: 14,
+              child: InkWell(
+                onTap: onBack,
+                borderRadius: BorderRadius.circular(14),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: primary),
+                      const SizedBox(width: 6),
+                      Text('Back', style: TextStyle(color: primary, fontWeight: FontWeight.w600)),
+                    ],
                   ),
-                ),
-                child: const Text(
-                  'Back',
-                  style: TextStyle(color: _pink, fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -315,33 +329,25 @@ class _NavBar extends StatelessWidget {
           ],
           Expanded(
             flex: 2,
-            child: ElevatedButton(
+            child: GradientButton(
               onPressed: canProceed ? (isLast ? onSave : onNext) : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _pink,
-                disabledBackgroundColor: Colors.grey.shade200,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
               child: saving
                   ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      isLast ? 'Complete Setup' : 'Continue',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                      width: 22, height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          isLast ? 'Complete Setup' : 'Continue',
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                        ),
+                        if (!isLast) ...[
+                          const SizedBox(width: 6),
+                          const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                        ],
+                      ],
                     ),
             ),
           ),
@@ -351,9 +357,8 @@ class _NavBar extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Step 1 — Basic Info
-// ──────────────────────────────────────────────────────────────
+// ─── Step 1 — Basic Info ──────────────────────────────────────────────────────
+
 class _Step1 extends StatelessWidget {
   final int? age;
   final String? gender;
@@ -361,8 +366,8 @@ class _Step1 extends StatelessWidget {
   final ValueChanged<int?> onAge;
   final ValueChanged<String?> onGender;
   final ValueChanged<String> onCityChange;
+  final Color primary, onSurface, onSurfaceVariant;
 
-  static const _pink = Color(0xFFE84393);
   static const _genders = [
     ('male', 'Man', Icons.male_rounded),
     ('female', 'Woman', Icons.female_rounded),
@@ -371,204 +376,231 @@ class _Step1 extends StatelessWidget {
   ];
 
   const _Step1({
-    required this.age,
-    required this.gender,
-    required this.cityCtrl,
-    required this.onAge,
-    required this.onGender,
-    required this.onCityChange,
+    required this.age, required this.gender, required this.cityCtrl,
+    required this.onAge, required this.onGender, required this.onCityChange,
+    required this.primary, required this.onSurface, required this.onSurfaceVariant,
   });
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label('How old are you?'),
-          const SizedBox(height: 8),
-          TextField(
-            keyboardType: TextInputType.number,
-            onChanged: (v) => onAge(int.tryParse(v)),
-            decoration: _inputDeco('Your age', suffix: 'years'),
-          ),
-          if (age != null && age! < 18)
-            const Padding(
-              padding: EdgeInsets.only(top: 6),
-              child: Text(
-                'Must be at least 18',
-                style: TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ),
-          const SizedBox(height: 24),
-          _label("What's your gender?"),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: _genders.map((g) {
-              final selected = gender == g.$1;
-              return GestureDetector(
-                onTap: () => onGender(g.$1),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 11,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? _pink : Colors.white,
-                    border: Border.all(
-                      color: selected ? _pink : Colors.grey.shade300,
-                    ),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        g.$3,
-                        size: 16,
-                        color: selected ? Colors.white : Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        g.$2,
-                        style: TextStyle(
-                          color: selected ? Colors.white : Colors.grey.shade700,
-                          fontWeight: selected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
+          // Age
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionLabel('How old are you?', onSurface),
+                const SizedBox(height: 12),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (v) => onAge(int.tryParse(v)),
+                  decoration: _inputDeco('Your age', suffixText: 'years', primary: primary),
                 ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          _label('Where are you based?'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: cityCtrl,
-            onChanged: onCityChange,
-            decoration: _inputDeco('City or town'),
-          ),
+                if (age != null && age! < 18)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text('Must be at least 18',
+                        style: TextStyle(color: Colors.red.shade400, fontSize: 12)),
+                  ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
+
+          // Gender
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionLabel("What's your gender?", onSurface),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 10, runSpacing: 10,
+                  children: _genders.map((g) {
+                    final selected = gender == g.$1;
+                    return GestureDetector(
+                      onTap: () => onGender(g.$1),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                        decoration: BoxDecoration(
+                          color: selected ? primary : primary.withValues(alpha: 0.06),
+                          border: Border.all(
+                              color: selected ? primary : primary.withValues(alpha: 0.2)),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Icon(g.$3, size: 16,
+                              color: selected ? Colors.white : primary.withValues(alpha: 0.7)),
+                          const SizedBox(width: 6),
+                          Text(g.$2,
+                              style: TextStyle(
+                                  color: selected ? Colors.white : onSurface.withValues(alpha: 0.75),
+                                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),
+                        ]),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
+
+          // City
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionLabel('Where are you based?', onSurface),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: cityCtrl,
+                  onChanged: onCityChange,
+                  decoration: _inputDeco('City or town', primary: primary),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Step 2 — About You
-// ──────────────────────────────────────────────────────────────
+// ─── Step 2 — About You ───────────────────────────────────────────────────────
+
 class _Step2 extends StatelessWidget {
   final TextEditingController bioCtrl;
-  final List<String> selected;
-  final List<String> all;
-  final ValueChanged<String> onToggle;
-  final ValueChanged<String> onBioChange;
-
-  static const _pink = Color(0xFFE84393);
+  final List<String> selected, all;
+  final ValueChanged<String> onToggle, onBioChange;
+  final Color primary, onSurface, onSurfaceVariant;
 
   const _Step2({
-    required this.bioCtrl,
-    required this.selected,
-    required this.all,
-    required this.onToggle,
-    required this.onBioChange,
+    required this.bioCtrl, required this.selected, required this.all,
+    required this.onToggle, required this.onBioChange,
+    required this.primary, required this.onSurface, required this.onSurfaceVariant,
   });
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label('Write a short bio'),
-          Text(
-            'At least 10 characters',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: bioCtrl,
-            maxLines: 5,
-            maxLength: 500,
-            onChanged: onBioChange,
-            decoration: _inputDeco('I love hiking, good coffee and...'),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _label('Interests'),
-              const Spacer(),
-              Text(
-                '${selected.length}/10',
-                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Pick up to 10 things you enjoy',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: all.map((interest) {
-              final isOn = selected.contains(interest);
-              final maxed = selected.length >= 10 && !isOn;
-              return GestureDetector(
-                onTap: maxed ? null : () => onToggle(interest),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isOn
-                        ? _pink
-                        : maxed
-                        ? Colors.grey.shade100
-                        : Colors.white,
-                    border: Border.all(
-                      color: isOn ? _pink : Colors.grey.shade300,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    interest,
-                    style: TextStyle(
-                      color: isOn
-                          ? Colors.white
-                          : maxed
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade700,
-                      fontSize: 13,
-                      fontWeight: isOn ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
+          // Bio
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionLabel('Write a short bio', onSurface),
+                const SizedBox(height: 4),
+                Text('At least 10 characters',
+                    style: TextStyle(color: onSurfaceVariant, fontSize: 12)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: bioCtrl,
+                  maxLines: 5,
+                  maxLength: 500,
+                  onChanged: onBioChange,
+                  decoration: _inputDeco('I love hiking, good coffee and...', primary: primary),
                 ),
-              );
-            }).toList(),
-          ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
+
+          // Interests
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  _sectionLabel('Interests', onSurface),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text('${selected.length}/10',
+                        style: TextStyle(color: primary, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ]),
+                const SizedBox(height: 4),
+                Text('Pick up to 10 things you enjoy',
+                    style: TextStyle(color: onSurfaceVariant, fontSize: 12)),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: all.map((interest) {
+                    final isOn = selected.contains(interest);
+                    final maxed = selected.length >= 10 && !isOn;
+                    return GestureDetector(
+                      onTap: maxed ? null : () => onToggle(interest),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isOn
+                              ? primary
+                              : maxed
+                                  ? primary.withValues(alpha: 0.03)
+                                  : primary.withValues(alpha: 0.06),
+                          border: Border.all(
+                              color: isOn
+                                  ? primary
+                                  : primary.withValues(alpha: maxed ? 0.08 : 0.2)),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(interest,
+                            style: TextStyle(
+                              color: isOn
+                                  ? Colors.white
+                                  : maxed
+                                      ? onSurface.withValues(alpha: 0.3)
+                                      : onSurface.withValues(alpha: 0.75),
+                              fontSize: 13,
+                              fontWeight: isOn ? FontWeight.w600 : FontWeight.w400,
+                            )),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Step 3 — Preferences
-// ──────────────────────────────────────────────────────────────
+// ─── Step 3 — Preferences ─────────────────────────────────────────────────────
+
 class _Step3 extends StatelessWidget {
   final String? interestedIn;
   final RangeValues ageRange;
@@ -576,133 +608,126 @@ class _Step3 extends StatelessWidget {
   final ValueChanged<String> onInterested;
   final ValueChanged<RangeValues> onRange;
   final ValueChanged<double> onDist;
-
-  static const _pink = Color(0xFFE84393);
+  final Color primary, onSurface, onSurfaceVariant;
 
   const _Step3({
-    required this.interestedIn,
-    required this.ageRange,
-    required this.maxDistance,
-    required this.onInterested,
-    required this.onRange,
-    required this.onDist,
+    required this.interestedIn, required this.ageRange, required this.maxDistance,
+    required this.onInterested, required this.onRange, required this.onDist,
+    required this.primary, required this.onSurface, required this.onSurfaceVariant,
   });
 
   @override
   Widget build(BuildContext context) {
-    final sliderTheme = SliderTheme.of(context).copyWith(
-      activeTrackColor: _pink,
-      inactiveTrackColor: Colors.grey.shade200,
-      thumbColor: _pink,
-      overlayColor: const Color(0x20E84393),
-    );
-
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label("I'm interested in"),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _PillBtn(
-                label: 'Men',
-                value: 'male',
-                selected: interestedIn,
-                onTap: onInterested,
-              ),
-              const SizedBox(width: 10),
-              _PillBtn(
-                label: 'Women',
-                value: 'female',
-                selected: interestedIn,
-                onTap: onInterested,
-              ),
-              const SizedBox(width: 10),
-              _PillBtn(
-                label: 'Everyone',
-                value: 'everyone',
-                selected: interestedIn,
-                onTap: onInterested,
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _label('Age range'),
-              Text(
-                '${ageRange.start.toInt()} – ${ageRange.end.toInt()}',
-                style: const TextStyle(
-                  color: _pink,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          SliderTheme(
-            data: sliderTheme.copyWith(
-              rangeThumbShape: const RoundRangeSliderThumbShape(
-                enabledThumbRadius: 12,
-              ),
+          // Interested In
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _sectionLabel("I'm interested in", onSurface),
+                const SizedBox(height: 14),
+                Row(children: [
+                  _GlassPill(label: 'Men', value: 'male', selected: interestedIn,
+                      onTap: onInterested, primary: primary, onSurface: onSurface),
+                  const SizedBox(width: 10),
+                  _GlassPill(label: 'Women', value: 'female', selected: interestedIn,
+                      onTap: onInterested, primary: primary, onSurface: onSurface),
+                  const SizedBox(width: 10),
+                  _GlassPill(label: 'Everyone', value: 'everyone', selected: interestedIn,
+                      onTap: onInterested, primary: primary, onSurface: onSurface),
+                ]),
+              ],
             ),
-            child: RangeSlider(
-              values: ageRange,
-              min: 18,
-              max: 99,
-              divisions: 81,
+          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.12, end: 0),
 
-              onChanged: onRange,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _label('Maximum distance'),
-              Text(
-                '${maxDistance.toInt()} km',
-                style: const TextStyle(
-                  color: _pink,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
+          const SizedBox(height: 16),
+
+          // Sliders
+          GlassCard(
+            borderRadius: 20,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Age Range
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _sectionLabel('Age range', onSurface),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${ageRange.start.toInt()} – ${ageRange.end.toInt()}',
+                        style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          SliderTheme(
-            data: sliderTheme,
-            child: Slider(
-              value: maxDistance,
-              min: 1,
-              max: 200,
-              divisions: 199,
-              onChanged: onDist,
+                const SizedBox(height: 4),
+                RangeSlider(
+                  values: ageRange, min: 18, max: 99, divisions: 81,
+                  activeColor: primary,
+                  onChanged: onRange,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Distance
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _sectionLabel('Maximum distance', onSurface),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${maxDistance.toInt()} km',
+                        style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Slider(
+                  value: maxDistance, min: 1, max: 200, divisions: 199,
+                  activeColor: primary,
+                  onChanged: onDist,
+                ),
+              ],
             ),
-          ),
+          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.12, end: 0),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-class _PillBtn extends StatelessWidget {
+// ─── Interest / Gender Pill ───────────────────────────────────────────────────
+
+class _GlassPill extends StatelessWidget {
   final String label, value;
   final String? selected;
   final ValueChanged<String> onTap;
+  final Color primary, onSurface;
 
-  static const _pink = Color(0xFFE84393);
-
-  const _PillBtn({
-    required this.label,
-    required this.value,
-    required this.selected,
-    required this.onTap,
+  const _GlassPill({
+    required this.label, required this.value, required this.selected,
+    required this.onTap, required this.primary, required this.onSurface,
   });
 
   @override
@@ -712,21 +737,18 @@ class _PillBtn extends StatelessWidget {
       child: GestureDetector(
         onTap: () => onTap(value),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: on ? _pink : Colors.white,
-            border: Border.all(color: on ? _pink : Colors.grey.shade300),
+            color: on ? primary : primary.withValues(alpha: 0.06),
+            border: Border.all(color: on ? primary : primary.withValues(alpha: 0.2)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: on ? Colors.white : Colors.grey.shade700,
-                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
+            child: Text(label,
+                style: TextStyle(
+                    color: on ? Colors.white : onSurface.withValues(alpha: 0.75),
+                    fontWeight: on ? FontWeight.w700 : FontWeight.w500)),
           ),
         ),
       ),
@@ -734,34 +756,43 @@ class _PillBtn extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Step 4 — Photos
-// ──────────────────────────────────────────────────────────────
+// ─── Step 4 — Photos ──────────────────────────────────────────────────────────
+
 class _Step4 extends StatelessWidget {
   final List<XFile> photos;
   final VoidCallback onAdd;
   final ValueChanged<int> onRemove;
-
-  static const _pink = Color(0xFFE84393);
+  final Color primary, onSurfaceVariant;
 
   const _Step4({
-    required this.photos,
-    required this.onAdd,
-    required this.onRemove,
+    required this.photos, required this.onAdd, required this.onRemove,
+    required this.primary, required this.onSurfaceVariant,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Add at least 1 photo to get started',
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
+          GlassCard(
+            borderRadius: 16,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(children: [
+              Icon(Icons.photo_library_rounded, color: primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Add at least 1 photo. The first one will be your main photo.',
+                  style: TextStyle(color: onSurfaceVariant, fontSize: 13),
+                ),
+              ),
+            ]),
+          ).animate().fadeIn(delay: 100.ms),
+
           const SizedBox(height: 16),
+
           Expanded(
             child: GridView.builder(
               itemCount: 6,
@@ -777,100 +808,94 @@ class _Step4 extends StatelessWidget {
 
                 return GestureDetector(
                   onTap: isNextSlot ? onAdd : null,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
+                          color: hasPhoto
+                              ? Colors.transparent
+                              : primary.withValues(alpha: isNextSlot ? 0.08 : 0.04),
                           border: Border.all(
                             color: isNextSlot && !hasPhoto
-                                ? _pink
-                                : Colors.grey.shade200,
+                                ? primary.withValues(alpha: 0.40)
+                                : primary.withValues(alpha: 0.12),
                             width: isNextSlot && !hasPhoto ? 1.5 : 1,
                           ),
                           image: hasPhoto
                               ? DecorationImage(
                                   image: FileImage(File(photos[i].path)),
-                                  fit: BoxFit.cover,
-                                )
+                                  fit: BoxFit.cover)
                               : null,
                         ),
-                        child: hasPhoto
-                            ? null
-                            : Center(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            if (!hasPhoto)
+                              Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(
                                       Icons.add_photo_alternate_outlined,
                                       color: isNextSlot
-                                          ? _pink
-                                          : Colors.grey.shade300,
+                                          ? primary
+                                          : primary.withValues(alpha: 0.25),
                                       size: 28,
                                     ),
                                     if (i == 0 && isNextSlot) ...[
                                       const SizedBox(height: 4),
-                                      const Text(
-                                        'Main',
-                                        style: TextStyle(
-                                          color: _pink,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
+                                      Text('Main',
+                                          style: TextStyle(
+                                              color: primary,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600)),
                                     ],
                                   ],
                                 ),
                               ),
+
+                            // Delete button
+                            if (hasPhoto)
+                              Positioned(
+                                top: 6, right: 6,
+                                child: GestureDetector(
+                                  onTap: () => onRemove(i),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: const BoxDecoration(
+                                        color: Colors.black54, shape: BoxShape.circle),
+                                    child: const Icon(Icons.close, color: Colors.white, size: 13),
+                                  ),
+                                ),
+                              ),
+
+                            // Main badge
+                            if (i == 0 && hasPhoto)
+                              Positioned(
+                                bottom: 6, left: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [primary, Color.lerp(primary, Colors.pink, 0.5)!]),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text('Main',
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 10,
+                                          fontWeight: FontWeight.w700)),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                      if (hasPhoto)
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () => onRemove(i),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      if (i == 0 && hasPhoto)
-                        Positioned(
-                          bottom: 6,
-                          left: 6,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _pink,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Main',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
-                );
+                ).animate().fadeIn(delay: Duration(milliseconds: 80 * i));
               },
             ),
           ),
@@ -880,30 +905,30 @@ class _Step4 extends StatelessWidget {
   }
 }
 
-// ──────────────────────────────────────────────────────────────
-// Shared helpers
-// ──────────────────────────────────────────────────────────────
-Widget _label(String text) => Text(
-  text,
-  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-);
+// ─── Shared helpers ───────────────────────────────────────────────────────────
 
-InputDecoration _inputDeco(String hint, {String? suffix}) => InputDecoration(
-  hintText: hint,
-  suffixText: suffix,
-  filled: true,
-  fillColor: Colors.grey.shade50,
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(color: Colors.grey.shade200),
-  ),
-  enabledBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(color: Colors.grey.shade200),
-  ),
-  focusedBorder: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(color: Color(0xFFE84393), width: 1.5),
-  ),
-  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-);
+Widget _sectionLabel(String text, Color onSurface) => Text(
+      text,
+      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: onSurface),
+    );
+
+InputDecoration _inputDeco(String hint, {String? suffixText, required Color primary}) =>
+    InputDecoration(
+      hintText: hint,
+      suffixText: suffixText,
+      filled: true,
+      fillColor: primary.withValues(alpha: 0.04),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primary.withValues(alpha: 0.18)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primary.withValues(alpha: 0.18)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    );
