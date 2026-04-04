@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,8 +26,8 @@ class SettingsScreen extends ConsumerWidget {
           const GlassBackground(child: SizedBox.expand()),
 
           // Decorative blobs
-          Positioned(top: -60, right: -50, child: GlassBlob(size: 200, opacity: 0.10)),
-          Positioned(bottom: 160, left: -60, child: GlassBlob(size: 150, opacity: 0.08)),
+          const Positioned(top: -60, right: -50, child: GlassBlob(size: 200, opacity: 0.10)),
+          const Positioned(bottom: 160, left: -60, child: GlassBlob(size: 150, opacity: 0.08)),
 
           SafeArea(
             child: SingleChildScrollView(

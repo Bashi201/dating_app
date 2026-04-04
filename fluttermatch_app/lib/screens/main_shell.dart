@@ -124,8 +124,8 @@ class _ProfileTab extends ConsumerWidget {
           const GlassBackground(child: SizedBox.expand()),
 
           // Decorative blobs for dynamic background
-          Positioned(top: -40, right: -40, child: GlassBlob(size: 200, opacity: 0.12)),
-          Positioned(top: 250, left: -60, child: GlassBlob(size: 150, opacity: 0.08)),
+          const Positioned(top: -40, right: -40, child: GlassBlob(size: 200, opacity: 0.12)),
+          const Positioned(top: 250, left: -60, child: GlassBlob(size: 150, opacity: 0.08)),
 
           SafeArea(
             bottom: false,

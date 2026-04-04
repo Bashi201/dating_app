@@ -123,8 +123,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           const GlassBackground(child: SizedBox.expand()),
 
           // ── Decorative blobs ───────────────────────────────────────────────
-          Positioned(top: -60, right: -50, child: GlassBlob(size: 220, opacity: 0.11)),
-          Positioned(bottom: 120, left: -60, child: GlassBlob(size: 160, opacity: 0.09)),
+          const Positioned(top: -60, right: -50, child: GlassBlob(size: 220, opacity: 0.11)),
+          const Positioned(bottom: 120, left: -60, child: GlassBlob(size: 160, opacity: 0.09)),
 
           SafeArea(
             child: Column(

@@ -127,9 +127,10 @@ class GlassBlob extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            color.withOpacity(isDark ? opacity * 0.85 : opacity),
-            color.withOpacity(0),
+            color.withValues(alpha: isDark ? opacity * 0.85 : opacity),
+            color.withValues(alpha: 0),
           ],
+          stops: const [0.2, 1.0],
         ),
       ),
     );

@@ -74,8 +74,8 @@ class _VerifyEmailStatusScreenState
       body: Stack(
         children: [
           const GlassBackground(child: SizedBox.expand()),
-          Positioned(top: -50, right: -50, child: GlassBlob(size: 200, opacity: 0.10)),
-          Positioned(bottom: 80, left: -60, child: GlassBlob(size: 160, opacity: 0.08)),
+          const Positioned(top: -50, right: -50, child: GlassBlob(size: 200, opacity: 0.10)),
+          const Positioned(bottom: 80, left: -60, child: GlassBlob(size: 160, opacity: 0.08)),
 
           SafeArea(
             child: Column(

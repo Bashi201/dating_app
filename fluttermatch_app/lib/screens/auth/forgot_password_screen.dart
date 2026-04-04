@@ -51,9 +51,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     const mutedWine = Color(0xFF7A3040);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelColor = isDark ? roseBlush.withOpacity(0.85) : mutedWine.withOpacity(0.75);
-    final hintColor = isDark ? roseBlush.withOpacity(0.40) : crimson.withOpacity(0.28);
-    final iconColor = isDark ? roseBlush.withOpacity(0.65) : crimson.withOpacity(0.45);
+    final labelColor = isDark ? roseBlush.withValues(alpha: 0.85) : mutedWine.withValues(alpha: 0.75);
+    final hintColor = isDark ? roseBlush.withValues(alpha: 0.40) : crimson.withValues(alpha: 0.28);
+    final iconColor = isDark ? roseBlush.withValues(alpha: 0.65) : crimson.withValues(alpha: 0.45);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -66,17 +66,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           const Positioned(
             top: -100,
             right: -80,
-            child: GlassBlob(size: 320, opacity: 0.12),
+            child: GlassBlob(size: 320, opacity: 0.22),
           ),
           const Positioned(
             bottom: 60,
             left: -90,
-            child: GlassBlob(size: 260, opacity: 0.10),
+            child: GlassBlob(size: 260, opacity: 0.20),
           ),
           const Positioned(
             top: 260,
             right: -30,
-            child: GlassBlob(size: 140, opacity: 0.08),
+            child: GlassBlob(size: 140, opacity: 0.18),
           ),
 
           SafeArea(
@@ -93,10 +93,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: crimson.withOpacity(0.08),
+                        color: crimson.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: crimson.withOpacity(0.12),
+                          color: crimson.withValues(alpha: 0.12),
                         ),
                       ),
                       child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -130,7 +130,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             Container(
                               width: 36,
                               height: 1,
-                              color: crimson.withOpacity(0.25),
+                              color: crimson.withValues(alpha: 0.25),
                             ),
                             const SizedBox(width: 10),
                             Text(
@@ -138,7 +138,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               style: GoogleFonts.cormorantGaramond(
                                 fontSize: 13,
                                 letterSpacing: 1.8,
-                                color: isDark ? roseBlush.withOpacity(0.70) : mutedWine.withOpacity(0.60),
+                                color: isDark ? roseBlush.withValues(alpha: 0.70) : mutedWine.withValues(alpha: 0.60),
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
@@ -146,7 +146,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             Container(
                               width: 36,
                               height: 1,
-                              color: crimson.withOpacity(0.25),
+                              color: crimson.withValues(alpha: 0.25),
                             ),
                           ],
                         ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
@@ -233,7 +233,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _FieldLabel('Email address', labelColor),
+                _fieldLabel('Email address', labelColor),
                 const SizedBox(height: 4),
                 TextFormField(
                   controller: _emailCtrl,
@@ -290,7 +290,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               Container(
                 width: 80, height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.12),
+                  color: Colors.green.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.mark_email_read_outlined, size: 40, color: Colors.green),
@@ -340,7 +340,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  Widget _FieldLabel(String text, Color color) => Text(
+  Widget _fieldLabel(String text, Color color) => Text(
     text,
     style: GoogleFonts.poppins(
       fontSize: 11.5,
@@ -369,15 +369,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         color: iconColor,
       ),
     ),
-    // Remove the label — we're using our own _FieldLabel above
+    // Remove the label — we're using our own _fieldLabel above
     labelText: null,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withValues(alpha: 0.15)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withValues(alpha: 0.15)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -393,6 +393,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
     filled: true,
-    fillColor: const Color(0xFF9B1C3A).withOpacity(0.04),
+    fillColor: const Color(0xFF9B1C3A).withValues(alpha: 0.04),
   );
 }

@@ -67,14 +67,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     const crimson = Color(0xFF9B1C3A);
     const deepCrimson = Color(0xFF6B0F26);
     const roseBlush = Color(0xFFF7D6DC);
-    const warmCream = Color(0xFFFDF4F0);
-    const darkInk = Color(0xFF1A0A0D);
     const mutedWine = Color(0xFF7A3040);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelColor = isDark ? roseBlush.withOpacity(0.85) : mutedWine.withOpacity(0.75);
-    final hintColor = isDark ? roseBlush.withOpacity(0.40) : crimson.withOpacity(0.28);
-    final iconColor = isDark ? roseBlush.withOpacity(0.65) : crimson.withOpacity(0.45);
+    final labelColor = isDark ? roseBlush.withValues(alpha: 0.85) : mutedWine.withValues(alpha: 0.75);
+    final hintColor = isDark ? roseBlush.withValues(alpha: 0.40) : crimson.withValues(alpha: 0.28);
+    final iconColor = isDark ? roseBlush.withValues(alpha: 0.65) : crimson.withValues(alpha: 0.45);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -87,17 +85,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           const Positioned(
             top: -100,
             right: -80,
-            child: GlassBlob(size: 320, opacity: 0.12),
+            child: GlassBlob(size: 320, opacity: 0.22),
           ),
           const Positioned(
             bottom: 60,
             left: -90,
-            child: GlassBlob(size: 260, opacity: 0.10),
+            child: GlassBlob(size: 260, opacity: 0.20),
           ),
           const Positioned(
             top: 260,
             right: -30,
-            child: GlassBlob(size: 140, opacity: 0.08),
+            child: GlassBlob(size: 140, opacity: 0.18),
           ),
 
           // ── Main content ─────────────────────────────────────────────────
@@ -140,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Container(
                                 width: 36,
                                 height: 1,
-                                color: crimson.withOpacity(0.25),
+                                color: crimson.withValues(alpha: 0.25),
                               ),
                               const SizedBox(width: 10),
                               Text(
@@ -148,7 +146,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   style: GoogleFonts.cormorantGaramond(
                                     fontSize: 13,
                                     letterSpacing: 1.8,
-                                    color: isDark ? roseBlush.withOpacity(0.70) : mutedWine.withOpacity(0.60),
+                                    color: isDark ? roseBlush.withValues(alpha: 0.70) : mutedWine.withValues(alpha: 0.60),
                                     fontStyle: FontStyle.italic,
                                   ),
                               ),
@@ -156,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Container(
                                 width: 36,
                                 height: 1,
-                                color: crimson.withOpacity(0.25),
+                                color: crimson.withValues(alpha: 0.25),
                               ),
                             ],
                           ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
@@ -226,7 +224,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Email label + field
-                              _FieldLabel('Email address', labelColor),
+                              _fieldLabel('Email address', labelColor),
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _emailCtrl,
@@ -239,10 +237,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   iconColor: iconColor,
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty)
+                                  if (v == null || v.isEmpty) {
                                     return 'Email is required';
-                                  if (!v.contains('@'))
+                                  }
+                                  if (!v.contains('@')) {
                                     return 'Enter a valid email';
+                                  }
                                   return null;
                                 },
                               ),
@@ -250,7 +250,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               const SizedBox(height: 20),
 
                               // Password label + field
-                              _FieldLabel('Password', labelColor),
+                              _fieldLabel('Password', labelColor),
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _passCtrl,
@@ -269,7 +269,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                               ? Icons.visibility_off_outlined
                                               : Icons.visibility_outlined,
                                           size: 20,
-                                          color: isDark ? roseBlush.withOpacity(0.60) : mutedWine.withOpacity(0.55),
+                                          color: isDark ? roseBlush.withValues(alpha: 0.60) : mutedWine.withValues(alpha: 0.55),
                                         ),
                                         onPressed: () => setState(
                                           () => _obscure = !_obscure,
@@ -277,10 +277,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                     ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty)
+                                  if (v == null || v.isEmpty) {
                                     return 'Password is required';
-                                  if (v.length < 8)
+                                  }
+                                  if (v.length < 8) {
                                     return 'Minimum 8 characters';
+                                  }
                                   return null;
                                 },
                               ),
@@ -402,7 +404,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  Widget _FieldLabel(String text, Color color) => Text(
+  Widget _fieldLabel(String text, Color color) => Text(
     text,
     style: GoogleFonts.poppins(
       fontSize: 11.5,
@@ -431,15 +433,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         color: iconColor,
       ),
     ),
-    // Remove the label — we're using our own _FieldLabel above
+    // Remove the label — we're using our own _fieldLabel above
     labelText: null,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withValues(alpha: 0.15)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withValues(alpha: 0.15)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -455,6 +457,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
     filled: true,
-    fillColor: const Color(0xFF9B1C3A).withOpacity(0.04),
+    fillColor: const Color(0xFF9B1C3A).withValues(alpha: 0.04),
   );
 }

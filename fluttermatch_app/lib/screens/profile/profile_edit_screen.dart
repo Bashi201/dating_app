@@ -124,7 +124,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
       body: Stack(
         children: [
           const GlassBackground(child: SizedBox.expand()),
-          Positioned(top: -40, right: -40, child: GlassBlob(size: 180, opacity: 0.08)),
+          const Positioned(top: -40, right: -40, child: GlassBlob(size: 180, opacity: 0.08)),
 
           SafeArea(
             child: Column(
@@ -318,7 +318,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
   }
 
   InputDecoration _inputDeco(String hint) {
-    final primary = AppColors.primary;
+    const primary = AppColors.primary;
     return InputDecoration(
       hintText: hint,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -330,7 +330,7 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
           borderSide: const BorderSide(color: Color(0xFFE8B4C8))),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: primary, width: 2)),
+          borderSide: const BorderSide(color: primary, width: 2)),
     );
   }
 

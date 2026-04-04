@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -21,7 +20,7 @@ class MatchesScreen extends ConsumerWidget {
       body: Stack(
         children: [
           const GlassBackground(child: SizedBox.expand()),
-          Positioned(top: -30, left: -50, child: GlassBlob(size: 160, opacity: 0.08)),
+          const Positioned(top: -30, left: -50, child: GlassBlob(size: 160, opacity: 0.08)),
 
           SafeArea(
             bottom: false,

@@ -72,7 +72,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
       body: Stack(
         children: [
           const GlassBackground(child: SizedBox.expand()),
-          Positioned(top: -40, right: -40, child: GlassBlob(size: 180, opacity: 0.09)),
+          const Positioned(top: -40, right: -40, child: GlassBlob(size: 180, opacity: 0.09)),
 
           SafeArea(
             bottom: false,
@@ -155,8 +155,11 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
         scale: 0.95,
         padding: const EdgeInsets.symmetric(vertical: 8),
         onSwipe: (prev, current, direction) {
-          if (direction == CardSwiperDirection.right) _handleLike();
-          else if (direction == CardSwiperDirection.left) _handleDislike();
+          if (direction == CardSwiperDirection.right) {
+            _handleLike();
+          } else if (direction == CardSwiperDirection.left) {
+            _handleDislike();
+          }
           return true;
         },
         cardBuilder: (ctx, index, percentX, percentY) {
@@ -332,7 +335,6 @@ class _MatchSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
     final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return ClipRRect(
