@@ -118,12 +118,19 @@ class GlassBlob extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? const Color(0xFF9B1C3A) : AppColors.primary;
+    
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: AppColors.primary.withValues(alpha: isDark ? opacity * 0.6 : opacity),
+        gradient: RadialGradient(
+          colors: [
+            color.withOpacity(isDark ? opacity * 0.85 : opacity),
+            color.withOpacity(0),
+          ],
+        ),
       ),
     );
   }

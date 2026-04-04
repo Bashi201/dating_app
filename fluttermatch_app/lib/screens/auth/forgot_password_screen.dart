@@ -44,43 +44,122 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+    final isLoading = _isLoading;
+
+    const crimson = Color(0xFF9B1C3A);
+    const roseBlush = Color(0xFFF7D6DC);
+    const mutedWine = Color(0xFF7A3040);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? roseBlush.withOpacity(0.85) : mutedWine.withOpacity(0.75);
+    final hintColor = isDark ? roseBlush.withOpacity(0.40) : crimson.withOpacity(0.28);
+    final iconColor = isDark ? roseBlush.withOpacity(0.65) : crimson.withOpacity(0.45);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
+          // ── Rich layered background ───────────────────────────────────────
           const GlassBackground(child: SizedBox.expand()),
-          Positioned(top: -60, right: -40, child: GlassBlob(size: 200, opacity: 0.11)),
-          Positioned(bottom: 100, left: -50, child: GlassBlob(size: 150, opacity: 0.09)),
+
+          // Signature Glass Blobs - the "nice circles" for brand consistency
+          const Positioned(
+            top: -100,
+            right: -80,
+            child: GlassBlob(size: 320, opacity: 0.12),
+          ),
+          const Positioned(
+            bottom: 60,
+            left: -90,
+            child: GlassBlob(size: 260, opacity: 0.10),
+          ),
+          const Positioned(
+            top: 260,
+            right: -30,
+            child: GlassBlob(size: 140, opacity: 0.08),
+          ),
 
           SafeArea(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
-                  // Back button
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: GlassCard(
-                        borderRadius: 12,
-                        padding: const EdgeInsets.all(10),
-                        child: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: primary),
+                  const SizedBox(height: 20),
+
+                  // ── Back button ──────────────────────────────────────────
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: crimson.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: crimson.withOpacity(0.12),
+                        ),
                       ),
+                      child: const Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 16, color: crimson),
                     ),
                   ).animate().fadeIn(duration: 300.ms),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 12),
+
+                  // ── Hero Logo Section ────────────────────────────────────
+                  Center(
+                    child: Column(
+                      children: [
+                        Image.asset(
+                              'assets/images/lovi-stacked.png',
+                              height: 80,
+                              fit: BoxFit.contain,
+                            )
+                            .animate()
+                            .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                            .scale(
+                              begin: const Offset(0.88, 0.88),
+                              end: const Offset(1.0, 1.0),
+                              duration: 700.ms,
+                              curve: Curves.easeOutBack,
+                            ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 1,
+                              color: crimson.withOpacity(0.25),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Fresh from the garden',
+                              style: GoogleFonts.cormorantGaramond(
+                                fontSize: 13,
+                                letterSpacing: 1.8,
+                                color: isDark ? roseBlush.withOpacity(0.70) : mutedWine.withOpacity(0.60),
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Container(
+                              width: 36,
+                              height: 1,
+                              color: crimson.withOpacity(0.25),
+                            ),
+                          ],
+                        ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
 
                   if (_emailSent)
-                    _successView(primary, onSurface, onSurfaceVariant)
+                    _successView(crimson, labelColor, isDark)
                   else
-                    _emailView(primary, onSurface, onSurfaceVariant),
+                    _emailView(labelColor, hintColor, iconColor, isLoading, isDark, roseBlush, mutedWine),
                 ],
               ),
             ),
@@ -90,83 +169,119 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 
-  Widget _emailView(Color primary, Color onSurface, Color onSurfaceVariant) {
+  Widget _emailView(Color labelColor, Color hintColor, Color iconColor, bool isLoading, bool isDark, Color roseBlush, Color mutedWine) {
     return Form(
       key: _emailFormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GlassCard(
-            borderRadius: 20,
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(Icons.lock_reset_rounded, size: 28, color: primary),
+          // ── Heading block ────────────────────────────────────────
+          Text(
+                'Forgot password?',
+                style: GoogleFonts.cormorantGaramond(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  height: 1.1,
+                  letterSpacing: -0.5,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Forgot password?',
-                          style: GoogleFonts.poppins(
-                              fontSize: 18, fontWeight: FontWeight.w700, color: onSurface)),
-                      const SizedBox(height: 4),
-                      Text("We'll send a reset link to your email.",
-                          style: GoogleFonts.poppins(fontSize: 13, color: onSurfaceVariant)),
-                    ],
+              )
+              .animate()
+              .fadeIn(delay: 180.ms, duration: 400.ms)
+              .slideX(begin: -0.06, end: 0),
+
+          const SizedBox(height: 6),
+
+          Text(
+            "Enter your email to receive a reset link",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 0.2,
+            ),
+          ).animate().fadeIn(delay: 240.ms, duration: 400.ms),
+
+          const SizedBox(height: 16),
+
+          // ── Thin decorative accent line ──────────────────────────
+          Container(
+                width: 40,
+                height: 3,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF9B1C3A), Color(0xFF6B0F26)],
                   ),
+                ),
+              )
+              .animate()
+              .fadeIn(delay: 300.ms)
+              .scaleX(
+                begin: 0,
+                end: 1,
+                alignment: Alignment.centerLeft,
+                duration: 500.ms,
+                curve: Curves.easeOut,
+              ),
+
+          const SizedBox(height: 18),
+
+          GlassCard(
+            borderRadius: 22,
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _FieldLabel('Email address', labelColor),
+                const SizedBox(height: 4),
+                TextFormField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  style: GoogleFonts.poppins(fontSize: 14),
+                  decoration: _inputDecoration(
+                    hint: 'you@example.com',
+                    icon: Icons.alternate_email_rounded,
+                    hintColor: hintColor,
+                    iconColor: iconColor,
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Email is required';
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) return 'Enter a valid email';
+                    return null;
+                  },
                 ),
               ],
             ),
-          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.15, end: 0),
+          ).animate().fadeIn(delay: 340.ms, duration: 450.ms).slideY(begin: 0.12, end: 0, curve: Curves.easeOut),
 
-          const SizedBox(height: 24),
-
-          GlassCard(
-            borderRadius: 20,
-            padding: const EdgeInsets.all(20),
-            child: TextFormField(
-              controller: _emailCtrl,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email address',
-                prefixIcon: Icon(Icons.email_outlined),
-              ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Email is required';
-                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) return 'Enter a valid email';
-                return null;
-              },
-            ),
-          ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.15, end: 0),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
 
           GradientButton(
-            onPressed: _isLoading ? null : _sendResetLink,
-            child: _isLoading
+            onPressed: isLoading ? null : _sendResetLink,
+            child: isLoading
                 ? const SizedBox(
-                    width: 24, height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                : const Text('Send Reset Link',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
-          ).animate().fadeIn(delay: 300.ms),
+                    width: 22, height: 22,
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(
+                    'Send Reset Link',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+          ).animate().fadeIn(delay: 430.ms, duration: 400.ms),
         ],
       ),
     );
   }
 
-  Widget _successView(Color primary, Color onSurface, Color onSurfaceVariant) {
+  Widget _successView(Color crimson, Color labelColor, bool isDark) {
     return Column(
       children: [
+        const SizedBox(height: 20),
         GlassCard(
           borderRadius: 24,
           padding: const EdgeInsets.all(32),
@@ -175,34 +290,41 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               Container(
                 width: 80, height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.12),
+                  color: Colors.green.withOpacity(0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.mark_email_read_outlined, size: 40, color: Colors.green),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Text('Check your email',
-                  style: GoogleFonts.poppins(
-                      fontSize: 22, fontWeight: FontWeight.w700, color: onSurface)),
-              const SizedBox(height: 8),
+                  style: GoogleFonts.cormorantGaramond(
+                      fontSize: 28, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+              const SizedBox(height: 12),
               Text('We sent a reset link to',
-                  style: GoogleFonts.poppins(fontSize: 14, color: onSurfaceVariant),
+                  style: GoogleFonts.poppins(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.center),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(_emailCtrl.text.trim(),
                   style: GoogleFonts.poppins(
-                      fontSize: 15, fontWeight: FontWeight.w600, color: primary),
+                      fontSize: 15, fontWeight: FontWeight.w600, color: crimson),
                   textAlign: TextAlign.center),
             ],
           ),
-        ).animate().fadeIn().scale(begin: const Offset(0.95, 0.95)),
+        ).animate().fadeIn().scale(begin: const Offset(0.92, 0.92)),
 
         const SizedBox(height: 24),
 
         GradientButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Back to Sign In',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+          child: Text(
+            'Back to Sign In',
+            style: GoogleFonts.poppins(
+              fontSize: 15.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.6,
+            ),
+          ),
         ).animate().fadeIn(delay: 200.ms),
 
         const SizedBox(height: 16),
@@ -210,9 +332,67 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         TextButton(
           onPressed: () => setState(() => _emailSent = false),
           child: Text("Didn't receive it? Try again",
-              style: GoogleFonts.poppins(fontSize: 13, color: primary, fontWeight: FontWeight.w600)),
+              style: GoogleFonts.poppins(fontSize: 13, color: crimson, fontWeight: FontWeight.w700)),
         ),
       ],
     );
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Widget _FieldLabel(String text, Color color) => Text(
+    text,
+    style: GoogleFonts.poppins(
+      fontSize: 11.5,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+      color: color,
+    ),
+  );
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+    required Color hintColor,
+    required Color iconColor,
+  }) => InputDecoration(
+    hintText: hint,
+    hintStyle: GoogleFonts.poppins(
+      fontSize: 13.5,
+      color: hintColor,
+    ),
+    prefixIcon: Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Icon(
+        icon,
+        size: 19,
+        color: iconColor,
+      ),
+    ),
+    // Remove the label — we're using our own _FieldLabel above
+    labelText: null,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF9B1C3A), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF991B1B)),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF991B1B), width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+    filled: true,
+    fillColor: const Color(0xFF9B1C3A).withOpacity(0.04),
+  );
 }

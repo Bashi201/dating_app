@@ -83,54 +83,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           // ── Rich layered background ───────────────────────────────────────
           const GlassBackground(child: SizedBox.expand()),
 
-          // Warm ambient orbs — replacing harsh blobs with soft glows
-          Positioned(
+          // Signature Glass Blobs - the "nice circles" for brand consistency
+          const Positioned(
             top: -100,
             right: -80,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [crimson.withOpacity(0.18), crimson.withOpacity(0.0)],
-                ),
-              ),
-            ),
+            child: GlassBlob(size: 320, opacity: 0.12),
           ),
-          Positioned(
+          const Positioned(
             bottom: 60,
             left: -90,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    deepCrimson.withOpacity(0.14),
-                    deepCrimson.withOpacity(0.0),
-                  ],
-                ),
-              ),
-            ),
+            child: GlassBlob(size: 260, opacity: 0.10),
           ),
-          Positioned(
+          const Positioned(
             top: 260,
             right: -30,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    roseBlush.withOpacity(0.10),
-                    roseBlush.withOpacity(0.0),
-                  ],
-                ),
-              ),
-            ),
+            child: GlassBlob(size: 140, opacity: 0.08),
           ),
 
           // ── Main content ─────────────────────────────────────────────────
