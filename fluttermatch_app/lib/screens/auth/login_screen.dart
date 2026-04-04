@@ -43,10 +43,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           SnackBar(
             content: Text(
               isUnverified
-                  ? '📧 Please verify your email before signing in.'
+                  ? 'Please verify your email before signing in.'
                   : message,
             ),
-            backgroundColor: isUnverified ? Colors.orange : Colors.red,
+            backgroundColor: isUnverified
+                ? const Color(0xFFB45309)
+                : const Color(0xFF991B1B),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -60,95 +62,214 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
-    final primary = Theme.of(context).colorScheme.primary;
-    final onSurface = Theme.of(context).colorScheme.onSurface;
-    final onSurfaceVariant = Theme.of(context).colorScheme.onSurfaceVariant;
+
+    // Brand palette derived from the lovi logo
+    const crimson = Color(0xFF9B1C3A);
+    const deepCrimson = Color(0xFF6B0F26);
+    const roseBlush = Color(0xFFF7D6DC);
+    const warmCream = Color(0xFFFDF4F0);
+    const darkInk = Color(0xFF1A0A0D);
+    const mutedWine = Color(0xFF7A3040);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? roseBlush.withOpacity(0.85) : mutedWine.withOpacity(0.75);
+    final hintColor = isDark ? roseBlush.withOpacity(0.40) : crimson.withOpacity(0.28);
+    final iconColor = isDark ? roseBlush.withOpacity(0.65) : crimson.withOpacity(0.45);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
+          // ── Rich layered background ───────────────────────────────────────
           const GlassBackground(child: SizedBox.expand()),
+
+          // Warm ambient orbs — replacing harsh blobs with soft glows
           Positioned(
-            top: -70,
-            right: -50,
-            child: GlassBlob(size: 240, opacity: 0.13),
+            top: -100,
+            right: -80,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [crimson.withOpacity(0.18), crimson.withOpacity(0.0)],
+                ),
+              ),
+            ),
           ),
           Positioned(
-            bottom: 80,
-            left: -60,
-            child: GlassBlob(size: 180, opacity: 0.10),
+            bottom: 60,
+            left: -90,
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    deepCrimson.withOpacity(0.14),
+                    deepCrimson.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
           ),
           Positioned(
-            top: 200,
-            left: -40,
-            child: GlassBlob(size: 100, opacity: 0.07),
+            top: 260,
+            right: -30,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    roseBlush.withOpacity(0.10),
+                    roseBlush.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
           ),
 
+          // ── Main content ─────────────────────────────────────────────────
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 52),
 
-                    // ── Logo ─────────────────────────────────────────────────
+                    // ── Hero Logo Section ────────────────────────────────────
+                    // Full-bleed, no card cage around it — let the logo breathe
                     Center(
-                      child:
-                          GlassCard(
-                                borderRadius: 28,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                  vertical: 24,
-                                ),
-                                child: Image.asset(
-                                  'assets/images/lovi-stacked.png',
-                                  height: 100,
-                                  fit: BoxFit.contain,
-                                ),
+                      child: Column(
+                        children: [
+                          // Logo image — displayed generously without a box
+                          Image.asset(
+                                'assets/images/lovi-stacked.png',
+                                height: 110,
+                                fit: BoxFit.contain,
                               )
                               .animate()
-                              .fadeIn(duration: 500.ms)
-                              .slideY(begin: -0.2, end: 0),
+                              .fadeIn(duration: 600.ms, curve: Curves.easeOut)
+                              .scale(
+                                begin: const Offset(0.88, 0.88),
+                                end: const Offset(1.0, 1.0),
+                                duration: 700.ms,
+                                curve: Curves.easeOutBack,
+                              ),
+
+                          const SizedBox(height: 16),
+
+                          // Elegant thin rule — replaces the card border
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 1,
+                                color: crimson.withOpacity(0.25),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Fresh from the garden',
+                                  style: GoogleFonts.cormorantGaramond(
+                                    fontSize: 13,
+                                    letterSpacing: 1.8,
+                                    color: isDark ? roseBlush.withOpacity(0.70) : mutedWine.withOpacity(0.60),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                width: 36,
+                                height: 1,
+                                color: crimson.withOpacity(0.25),
+                              ),
+                            ],
+                          ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
+                        ],
+                      ),
                     ),
 
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 44),
 
+                    // ── Heading block ────────────────────────────────────────
                     Text(
-                      'Welcome back 👋',
-                      style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        color: onSurface,
-                      ),
-                    ).animate().fadeIn(delay: 150.ms),
+                          'Welcome back',
+                          style: GoogleFonts.cormorantGaramond(
+                            fontSize: 36,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.1,
+                            letterSpacing: -0.5,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 180.ms, duration: 400.ms)
+                        .slideX(begin: -0.06, end: 0),
 
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+
                     Text(
                       'Sign in to continue',
                       style: GoogleFonts.poppins(
-                        fontSize: 15,
-                        color: onSurfaceVariant,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.2,
                       ),
-                    ).animate().fadeIn(delay: 200.ms),
+                    ).animate().fadeIn(delay: 240.ms, duration: 400.ms),
+
+                    const SizedBox(height: 30),
+
+                    // ── Thin decorative accent line ──────────────────────────
+                    Container(
+                          width: 40,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            gradient: const LinearGradient(
+                              colors: [crimson, deepCrimson],
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 300.ms)
+                        .scaleX(
+                          begin: 0,
+                          end: 1,
+                          alignment: Alignment.centerLeft,
+                          duration: 500.ms,
+                          curve: Curves.easeOut,
+                        ),
 
                     const SizedBox(height: 28),
 
-                    // ── Input Glass Card ──────────────────────────────────────
+                    // ── Input card ───────────────────────────────────────────
                     GlassCard(
-                          borderRadius: 20,
-                          padding: const EdgeInsets.all(20),
+                          borderRadius: 22,
+                          padding: const EdgeInsets.fromLTRB(22, 24, 22, 8),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Email label + field
+                              _FieldLabel('Email address', labelColor),
+                              const SizedBox(height: 6),
                               TextFormField(
                                 controller: _emailCtrl,
                                 keyboardType: TextInputType.emailAddress,
-                                decoration: const InputDecoration(
-                                  labelText: 'Email',
-                                  prefixIcon: Icon(Icons.email_outlined),
+                                style: GoogleFonts.poppins(fontSize: 14),
+                                decoration: _inputDecoration(
+                                  hint: 'you@example.com',
+                                  icon: Icons.alternate_email_rounded,
+                                  hintColor: hintColor,
+                                  iconColor: iconColor,
                                 ),
                                 validator: (v) {
                                   if (v == null || v.isEmpty)
@@ -158,25 +279,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 14),
+
+                              const SizedBox(height: 20),
+
+                              // Password label + field
+                              _FieldLabel('Password', labelColor),
+                              const SizedBox(height: 6),
                               TextFormField(
                                 controller: _passCtrl,
                                 obscureText: _obscure,
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                  prefixIcon: const Icon(
-                                    Icons.lock_outline_rounded,
-                                  ),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscure
-                                          ? Icons.visibility_off_rounded
-                                          : Icons.visibility_rounded,
+                                style: GoogleFonts.poppins(fontSize: 14),
+                                decoration:
+                                    _inputDecoration(
+                                      hint: '••••••••',
+                                      icon: Icons.lock_outline_rounded,
+                                      hintColor: hintColor,
+                                      iconColor: iconColor,
+                                    ).copyWith(
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscure
+                                              ? Icons.visibility_off_outlined
+                                              : Icons.visibility_outlined,
+                                          size: 20,
+                                          color: isDark ? roseBlush.withOpacity(0.60) : mutedWine.withOpacity(0.55),
+                                        ),
+                                        onPressed: () => setState(
+                                          () => _obscure = !_obscure,
+                                        ),
+                                      ),
                                     ),
-                                    onPressed: () =>
-                                        setState(() => _obscure = !_obscure),
-                                  ),
-                                ),
                                 validator: (v) {
                                   if (v == null || v.isEmpty)
                                     return 'Password is required';
@@ -185,9 +317,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   return null;
                                 },
                               ),
+
+                              // Forgot password — right-aligned, no card bloat
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 12,
+                                    ),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -198,9 +340,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   child: Text(
                                     'Forgot password?',
                                     style: GoogleFonts.poppins(
-                                      fontSize: 13,
+                                      fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
-                                      color: primary,
+                                      color: crimson,
+                                      letterSpacing: 0.1,
                                     ),
                                   ),
                                 ),
@@ -209,55 +352,77 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         )
                         .animate()
-                        .fadeIn(delay: 300.ms)
-                        .slideY(begin: 0.15, end: 0),
+                        .fadeIn(delay: 340.ms, duration: 450.ms)
+                        .slideY(begin: 0.12, end: 0, curve: Curves.easeOut),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 26),
 
-                    // ── Gradient Login Button ────────────────────────────────
+                    // ── Premium Sign In Button ───────────────────────────────
                     GradientButton(
                       onPressed: isLoading ? null : _login,
                       child: isLoading
                           ? const SizedBox(
-                              width: 24,
-                              height: 24,
+                              width: 22,
+                              height: 22,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
-                                strokeWidth: 2.5,
+                                strokeWidth: 2,
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Sign In',
-                              style: TextStyle(
-                                fontSize: 16,
+                              style: GoogleFonts.poppins(
+                                fontSize: 15.5,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
+                                letterSpacing: 0.6,
                               ),
                             ),
-                    ).animate().fadeIn(delay: 400.ms),
+                    ).animate().fadeIn(delay: 430.ms, duration: 400.ms),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
+                    // ── Register link — refined, no emoji ───────────────────
                     Center(
-                      child: TextButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'New to lovi?',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          "Don't have an account? Sign Up",
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: primary,
-                            fontWeight: FontWeight.w600,
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.only(left: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
+                            ),
+                            child: Text(
+                              'Create an account',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: crimson,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ).animate().fadeIn(delay: 450.ms),
+                    ).animate().fadeIn(delay: 480.ms, duration: 400.ms),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -267,4 +432,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Widget _FieldLabel(String text, Color color) => Text(
+    text,
+    style: GoogleFonts.poppins(
+      fontSize: 11.5,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.8,
+      color: color,
+    ),
+  );
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+    required Color hintColor,
+    required Color iconColor,
+  }) => InputDecoration(
+    hintText: hint,
+    hintStyle: GoogleFonts.poppins(
+      fontSize: 13.5,
+      color: hintColor,
+    ),
+    prefixIcon: Padding(
+      padding: const EdgeInsets.only(left: 2),
+      child: Icon(
+        icon,
+        size: 19,
+        color: iconColor,
+      ),
+    ),
+    // Remove the label — we're using our own _FieldLabel above
+    labelText: null,
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: const Color(0xFF9B1C3A).withOpacity(0.15)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF9B1C3A), width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF991B1B)),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF991B1B), width: 1.5),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+    filled: true,
+    fillColor: const Color(0xFF9B1C3A).withOpacity(0.04),
+  );
 }
